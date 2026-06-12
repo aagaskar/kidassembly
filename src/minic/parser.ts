@@ -543,7 +543,7 @@ class Parser {
     for (;;) {
       if (this.at("+") || this.at("-")) {
         const t = this.next();
-        l = { kind: "bin", op: t.v, l, r: this.parseMul(), line: t.line };
+        l = { kind: "bin", op: String(t.v), l, r: this.parseMul(), line: t.line };
       } else return l;
     }
   }
@@ -553,7 +553,7 @@ class Parser {
     for (;;) {
       if (this.at("*") || this.at("/") || this.at("%")) {
         const t = this.next();
-        l = { kind: "bin", op: t.v, l, r: this.parseUnary(), line: t.line };
+        l = { kind: "bin", op: String(t.v), l, r: this.parseUnary(), line: t.line };
       } else return l;
     }
   }
@@ -566,7 +566,7 @@ class Parser {
     }
     // cast: ( type ) unary
     if (this.at("(") && this.toks[this.pos + 1]?.t === "id" &&
-        ["int", "char", "void", "struct"].includes(this.toks[this.pos + 1].v as string)) {
+        ["int", "char", "void", "struct"].includes(String(this.toks[this.pos + 1].v))) {
       this.next();
       const type = this.parseType();
       this.expect(")");

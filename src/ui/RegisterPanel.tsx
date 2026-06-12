@@ -6,7 +6,9 @@ export function RegisterPanel({ state, showSP = false }: { state: VMState; showS
       <div className="reg">
         <span className="name">A</span>
         <span className="val">{state.A}</span>
-        <span className="bin">{state.A.toString(2).padStart(8, "0")}</span>
+        <span className="bin">
+          {state.A.toString(2).padStart(state.machine === "bb16" ? 16 : 8, "0")}
+        </span>
       </div>
       <div className="reg">
         <span className="name">PC</span>

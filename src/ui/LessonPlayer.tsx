@@ -7,10 +7,14 @@ import {
   makeDrillQuestion,
 } from "../engine/grade";
 import { markComplete } from "../engine/profiles";
+import { recordAttempt, recordSkillMastered } from "../engine/mastery";
+import { skillById } from "../content/skills";
 import { OP_INFO } from "../vm/decode";
 import { useMachine } from "./useMachine";
 import { MachineView } from "./MachineView";
 import { BitsExercise, BitToggles } from "./BitToggles";
+import { BugHuntStep, CViewStep, MatchStep, ParsonsStep, TargetStep, TraceStep } from "./steps";
+import { MiniCStep } from "./MiniCStep";
 
 interface Props {
   lesson: Lesson;
@@ -21,14 +25,29 @@ interface Props {
 export function LessonPlayer({ lesson, profileId, onExit }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const stepStarted = useRef(Date.now());
 
   const advance = () => {
     if (stepIndex + 1 < lesson.steps.length) {
+      stepStarted.current = Date.now();
       setStepIndex(stepIndex + 1);
     } else {
       markComplete(profileId, lesson.id);
+      const skill = skillById(lesson.id);
+      if (skill) recordSkillMastered(profileId, skill);
       setDone(true);
     }
+  };
+
+  const onOutcome = (correct: boolean) => {
+    recordAttempt(profileId, {
+      skillId: lesson.id,
+      itemKind: lesson.steps[stepIndex].kind,
+      correct,
+      latencyMs: Date.now() - stepStarted.current,
+      at: new Date().toISOString(),
+      context: "lesson",
+    });
   };
 
   if (done) {
@@ -54,7 +73,7 @@ export function LessonPlayer({ lesson, profileId, onExit }: Props) {
         <div style={{ width: `${(stepIndex / lesson.steps.length) * 100}%` }} />
       </div>
       {/* key forces a clean remount per step so per-step state never leaks */}
-      <StepView key={`${lesson.id}.${stepIndex}`} step={step} onDone={advance} />
+      <StepView key={`${lesson.id}.${stepIndex}`} step={step} onDone={advance} onOutcome={onOutcome} />
     </div>
   );
 }
@@ -67,31 +86,55 @@ function NextButton({ onDone, label = "Next →" }: { onDone: () => void; label?
   );
 }
 
-function StepView({ step, onDone }: { step: Step; onDone: () => void }) {
+export function StepView({
+  step,
+  onDone,
+  onOutcome,
+}: {
+  step: Step;
+  onDone: () => void;
+  onOutcome?: (correct: boolean) => void;
+}) {
   switch (step.kind) {
     case "info":
       return <InfoStep step={step} onDone={onDone} />;
     case "bits":
       return <BitsStep step={step} onDone={onDone} />;
     case "drill":
-      return <DrillStep step={step} onDone={onDone} />;
+      return <DrillStep step={step} onDone={onDone} onOutcome={onOutcome} />;
     case "quiz":
-      return <QuizStep step={step} onDone={onDone} />;
+      return <QuizStep step={step} onDone={onDone} onOutcome={onOutcome} />;
     case "predict":
-      return <PredictStep step={step} onDone={onDone} />;
+      return <PredictStep step={step} onDone={onDone} onOutcome={onOutcome} />;
     case "fillblank":
-      return <FillBlankStep step={step} onDone={onDone} />;
+      return <FillBlankStep step={step} onDone={onDone} onOutcome={onOutcome} />;
+    case "parsons":
+      return <ParsonsStep step={step} onDone={onDone} onOutcome={onOutcome} />;
+    case "trace":
+      return <TraceStep step={step} onDone={onDone} onOutcome={onOutcome} />;
+    case "bughunt":
+      return <BugHuntStep step={step} onDone={onDone} onOutcome={onOutcome} />;
+    case "target":
+      return <TargetStep step={step} onDone={onDone} onOutcome={onOutcome} />;
+    case "match":
+      return <MatchStep step={step} onDone={onDone} onOutcome={onOutcome} />;
+    case "cview":
+      return <CViewStep step={step} onDone={onDone} />;
+    case "minic":
+      return <MiniCStep step={step} onDone={onDone} onOutcome={onOutcome} />;
   }
 }
 
 function InfoStep({ step, onDone }: { step: Extract<Step, { kind: "info" }>; onDone: () => void }) {
   const initial = useMemo(() => buildState(step.sim ?? {}), [step]);
   const machine = useMachine(initial);
+  // Runnable demo when the sim actually contains a program to step.
+  const runnable = Boolean(step.sim && (step.sim.program?.length || step.sim.asm));
   return (
     <div className="panel">
       <p className="big">{step.text}</p>
       {step.sim && (
-        <MachineView machine={machine} highlights={step.highlight} controls={false} />
+        <MachineView machine={machine} highlights={step.highlight} controls={runnable} />
       )}
       <NextButton onDone={onDone} />
     </div>
@@ -117,7 +160,15 @@ function BitsStep({ step, onDone }: { step: Extract<Step, { kind: "bits" }>; onD
   );
 }
 
-function DrillStep({ step, onDone }: { step: Extract<Step, { kind: "drill" }>; onDone: () => void }) {
+function DrillStep({
+  step,
+  onDone,
+  onOutcome,
+}: {
+  step: Extract<Step, { kind: "drill" }>;
+  onDone: () => void;
+  onOutcome?: (correct: boolean) => void;
+}) {
   // Fresh seed per mount: drills are parameterized and never repeat verbatim.
   const baseSeed = useRef(Math.floor(Math.random() * 0x7fffffff) || 1);
   const [solved, setSolved] = useState(0);
@@ -125,6 +176,13 @@ function DrillStep({ step, onDone }: { step: Extract<Step, { kind: "drill" }>; o
   const [typed, setTyped] = useState("");
   const [bits, setBits] = useState(0);
   const [wrong, setWrong] = useState(false);
+  const reported = useRef(false);
+  const report = (correct: boolean) => {
+    if (!reported.current) {
+      reported.current = true;
+      onOutcome?.(correct);
+    }
+  };
 
   const q = useMemo(
     () => makeDrillQuestion(step.drill, baseSeed.current + solved * 131 + attempt * 7919, step.maxValue ?? 15),
@@ -145,9 +203,11 @@ function DrillStep({ step, onDone }: { step: Extract<Step, { kind: "drill" }>; o
   const submit = () => {
     const answer = q.mode === "type" ? parseInt(typed, 10) : bits;
     if (answer === q.answer) {
+      if (solved + 1 >= step.count) report(true); // clean run to the end
       setSolved(solved + 1);
       setWrong(false);
     } else {
+      report(false); // any miss counts the drill as a miss for mastery
       setAttempt(attempt + 1); // new question, no answer reveal
       setWrong(true);
     }
@@ -175,6 +235,30 @@ function DrillStep({ step, onDone }: { step: Extract<Step, { kind: "drill" }>; o
             Check
           </button>
         </div>
+      ) : q.mode === "choice" ? (
+        <div>
+          {(q.choices ?? []).map((choice, i) => (
+            <button
+              key={i}
+              className="choice"
+              onClick={() => {
+                setTyped(String(i));
+                if (i === q.answer) {
+                  if (solved + 1 >= step.count) report(true);
+                  setSolved(solved + 1);
+                  setWrong(false);
+                } else {
+                  report(false);
+                  setAttempt(attempt + 1);
+                  setWrong(true);
+                }
+                setTyped("");
+              }}
+            >
+              {choice}
+            </button>
+          ))}
+        </div>
       ) : (
         <div className="col">
           <BitToggles bitCount={q.bitCount} value={bits} onChange={setBits} />
@@ -188,11 +272,27 @@ function DrillStep({ step, onDone }: { step: Extract<Step, { kind: "drill" }>; o
   );
 }
 
-function QuizStep({ step, onDone }: { step: Extract<Step, { kind: "quiz" }>; onDone: () => void }) {
+function QuizStep({
+  step,
+  onDone,
+  onOutcome,
+}: {
+  step: Extract<Step, { kind: "quiz" }>;
+  onDone: () => void;
+  onOutcome?: (correct: boolean) => void;
+}) {
   const initial = useMemo(() => buildState(step.sim ?? {}), [step]);
   const machine = useMachine(initial);
   const [picked, setPicked] = useState<number | null>(null);
+  const reported = useRef(false);
   const correct = picked === step.answer;
+  const pick = (i: number) => {
+    if (!reported.current) {
+      reported.current = true;
+      onOutcome?.(i === step.answer);
+    }
+    setPicked(i);
+  };
 
   return (
     <div className="panel">
@@ -209,7 +309,7 @@ function QuizStep({ step, onDone }: { step: Extract<Step, { kind: "quiz" }>; onD
               (picked === i ? (i === step.answer ? " picked-good" : " picked-bad") : "")
             }
             disabled={correct}
-            onClick={() => setPicked(i)}
+            onClick={() => pick(i)}
           >
             {choice}
           </button>
@@ -229,13 +329,28 @@ function QuizStep({ step, onDone }: { step: Extract<Step, { kind: "quiz" }>; onD
   );
 }
 
-function PredictStep({ step, onDone }: { step: Extract<Step, { kind: "predict" }>; onDone: () => void }) {
+function PredictStep({
+  step,
+  onDone,
+  onOutcome,
+}: {
+  step: Extract<Step, { kind: "predict" }>;
+  onDone: () => void;
+  onOutcome?: (correct: boolean) => void;
+}) {
   const initial = useMemo(() => buildState(step.sim), [step]);
   const machine = useMachine(initial);
   const [typed, setTyped] = useState("");
   const [tries, setTries] = useState(0);
   const [phase, setPhase] = useState<"asking" | "animating" | "shown">("asking");
   const [gotIt, setGotIt] = useState(false);
+  const reported = useRef(false);
+  const report = (correct: boolean) => {
+    if (!reported.current) {
+      reported.current = true;
+      onOutcome?.(correct);
+    }
+  };
 
   const expected = useMemo(
     () => expectedPrediction(step.sim, step.stepsToRun, step.ask),
@@ -259,6 +374,7 @@ function PredictStep({ step, onDone }: { step: Extract<Step, { kind: "predict" }
 
   const submit = () => {
     const answer = parseInt(typed, 10);
+    report(answer === expected); // first try is the mastery signal
     if (answer === expected) {
       setGotIt(true);
       setPhase(step.stepsToRun > 0 ? "animating" : "shown");
@@ -313,15 +429,28 @@ function PredictStep({ step, onDone }: { step: Extract<Step, { kind: "predict" }
   );
 }
 
-function FillBlankStep({ step, onDone }: { step: Extract<Step, { kind: "fillblank" }>; onDone: () => void }) {
+function FillBlankStep({
+  step,
+  onDone,
+  onOutcome,
+}: {
+  step: Extract<Step, { kind: "fillblank" }>;
+  onDone: () => void;
+  onOutcome?: (correct: boolean) => void;
+}) {
   const blanks = step.program.filter(isBlank);
   const [answers, setAnswers] = useState<string[]>(blanks.map(() => ""));
   const [result, setResult] = useState<"none" | "pass" | "fail">("none");
+  const reported = useRef(false);
 
   const submit = () => {
     const nums = answers.map((a) => parseInt(a, 10));
     if (nums.some(Number.isNaN)) return;
     const graded = gradeFillBlank(step.program, step.check, nums);
+    if (!reported.current) {
+      reported.current = true;
+      onOutcome?.(graded.pass);
+    }
     setResult(graded.pass ? "pass" : "fail");
   };
 

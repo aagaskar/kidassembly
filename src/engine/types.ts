@@ -43,6 +43,13 @@ export interface TargetCase {
   cells?: Record<number, number>;
   /** Expected A after HALT. */
   A?: number;
+  /**
+   * MiniC items only: global variables poked by NAME before the run
+   * (word-sized) — their addresses depend on the student's code.
+   */
+  symbols?: Record<string, number>;
+  /** MiniC items only: expected global values after HALT (word-sized). */
+  expectSymbols?: Record<string, number>;
 }
 
 /**
@@ -143,6 +150,8 @@ export type Step =
       asm: string;
       machine?: "bb8" | "bb16";
       check: TargetCheck;
+      /** A fixed version (author-side: content tests prove the bug is fixable). */
+      solution: string;
       explain?: string;
     }
   | {
@@ -153,6 +162,8 @@ export type Step =
       starter?: string;
       machine?: "bb8" | "bb16";
       check: TargetCheck;
+      /** One working answer (author-side: content tests prove solvability). */
+      solution: string;
       explain?: string;
     }
   | {
@@ -184,6 +195,8 @@ export type Step =
       /** "view": read + step; "edit": editable, graded by check. */
       mode: "view" | "edit";
       check?: TargetCheck;
+      /** One working answer for edit mode (author-side, tested). */
+      solution?: string;
       explain?: string;
     };
 

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { SCREEN_END, SCREEN_START, VMState } from "../vm/types";
+import { useEffect, useState } from "react";
+import { configOf, VMState } from "../vm/types";
 import { OP_INFO } from "../vm/decode";
 import { colorFor } from "./palette";
 
@@ -35,11 +35,30 @@ function cellContent(value: number, mode: ViewMode) {
   }
 }
 
+const PAGE = 256;
+
+/**
+ * 16×16 grid of memory cells. BitBot-8's whole memory fits one grid;
+ * BitBot-16 shows one 256-byte page at a time with a page picker that
+ * follows the PC while the machine runs.
+ */
 export function MemoryGrid({ state, viewMode, highlights = [], showPC = true, onPoke }: Props) {
+  const cfg = configOf(state);
+  const pages = cfg.memSize / PAGE;
+  const [page, setPage] = useState(0);
+  const [follow, setFollow] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
+
+  const pcPage = Math.floor(state.PC / PAGE);
+  useEffect(() => {
+    if (pages > 1 && follow) setPage(pcPage);
+  }, [pcPage, follow, pages]);
+
   const hiSet = new Set(highlights);
-  const operandAddr = (state.PC + 1) % 256;
+  const operandAddr = (state.PC + 1) % cfg.memSize;
+  const operand2Addr = (state.PC + 2) % cfg.memSize;
+  const base = pages > 1 ? page * PAGE : 0;
 
   const commit = () => {
     const v = parseInt(editValue, 10);
@@ -52,17 +71,40 @@ export function MemoryGrid({ state, viewMode, highlights = [], showPC = true, on
 
   return (
     <div className="col">
+      {pages > 1 && (
+        <div className="row" style={{ alignItems: "center", flexWrap: "wrap", gap: 4 }}>
+          <span className="dim">page</span>
+          {Array.from({ length: pages }, (_, p) => (
+            <button
+              key={p}
+              className={"mini" + (p === page ? "" : " secondary")}
+              onClick={() => {
+                setPage(p);
+                setFollow(false);
+              }}
+              title={`boxes ${p * PAGE}–${p * PAGE + PAGE - 1}`}
+            >
+              {p}
+            </button>
+          ))}
+          <label className="dim" style={{ marginLeft: 8 }}>
+            <input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} />
+            follow PC
+          </label>
+        </div>
+      )}
       <div className="memgrid">
-        {Array.from({ length: 256 }, (_, addr) => {
+        {Array.from({ length: PAGE }, (_, i) => {
+          const addr = base + i;
           const value = state.memory[addr];
-          const isScreen = addr >= SCREEN_START && addr <= SCREEN_END;
+          const isScreen = addr >= cfg.screenStart && addr <= cfg.screenEnd;
           const classes = ["memcell"];
           if (isScreen) classes.push("vram");
           if (showPC && !state.halted && addr === state.PC) classes.push("pc");
           if (
             showPC &&
             !state.halted &&
-            addr === operandAddr &&
+            (addr === operandAddr || (cfg.instrBytes === 3 && addr === operand2Addr)) &&
             OP_INFO[state.memory[state.PC]]?.hasOperand
           ) {
             classes.push("operand");

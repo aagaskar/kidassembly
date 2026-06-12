@@ -178,3 +178,74 @@ input[type="number"], input[type="text"] {
   border-radius: 10px; padding: 10px; text-align: center;
 }
 .keycapture:focus { border-color: var(--accent); outline: none; }
+
+/* ---- assembly editor & listings (Phase 3) ---- */
+.asm-editor { display: flex; flex-direction: column; gap: 6px; }
+.asm-pane { display: flex; gap: 8px; align-items: stretch; }
+.asm-text {
+  flex: 1; min-width: 280px; resize: vertical;
+  background: var(--panel2); color: var(--ink);
+  border: 1px solid #3a4380; border-radius: 8px; padding: 8px;
+  font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+  font-size: 13px; line-height: 1.5; tab-size: 8;
+}
+.asm-bytes {
+  margin: 0; padding: 8px; min-width: 110px;
+  background: #11142b; border-radius: 8px;
+  color: var(--ink-dim); font-size: 13px; line-height: 1.5;
+  overflow-x: auto;
+}
+.asm-errors { display: flex; flex-direction: column; gap: 2px; }
+.asm-listing, .c-listing {
+  margin: 0; padding: 8px; background: var(--panel2); border-radius: 8px;
+  font-size: 13px; line-height: 1.5; overflow-x: auto;
+}
+.asm-active { background: #2c4a7c; border-radius: 4px; }
+.asm-scroll { max-height: 420px; overflow-y: auto; }
+.c-edit { width: 100%; box-sizing: border-box; }
+.c-code { background: var(--panel2); padding: 2px 8px; border-radius: 6px; }
+
+/* ---- parsons ---- */
+.parsons { align-items: flex-start; }
+.parsons-col { flex: 1; min-width: 220px; background: var(--panel2); border-radius: 10px; padding: 10px; }
+.parsons-line {
+  display: block; width: 100%; text-align: left; margin: 4px 0;
+  font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+  background: var(--cell); color: var(--ink);
+}
+.parsons-chosen { display: flex; gap: 4px; align-items: center; }
+.parsons-chosen .parsons-line { flex: 1; }
+button.mini { padding: 4px 8px; font-size: 12px; }
+
+/* ---- trace tables ---- */
+.trace-table { border-collapse: collapse; }
+.trace-table th, .trace-table td { padding: 4px 8px; text-align: center; }
+.trace-table th { color: var(--ink-dim); font-weight: normal; }
+.trace-cell { width: 80px; text-align: center; }
+.trace-cell.cell-good { outline: 2px solid var(--good); }
+.trace-cell.cell-bad { outline: 2px solid var(--warn); }
+
+/* ---- match ---- */
+.match-table td { padding: 6px 8px; }
+.match-table select { max-width: 380px; }
+
+/* ---- compiler view ---- */
+.cview { align-items: flex-start; flex-wrap: wrap; }
+.cview-pane { flex: 1; min-width: 280px; }
+
+/* ---- target goal / screens ---- */
+.screen-goal {
+  display: grid; gap: 1px; background: #000; padding: 4px;
+  border-radius: 8px; width: max-content;
+}
+
+/* ---- review banner / xp ---- */
+.review-banner { display: flex; justify-content: space-between; align-items: center; }
+.xp { background: var(--panel2); border-radius: 999px; padding: 4px 12px; font-weight: bold; }
+
+/* ---- real C console ---- */
+.console {
+  margin: 0; padding: 10px; background: #0a0c1c; border-radius: 8px;
+  color: #9fdf9f; font-size: 13px; line-height: 1.5;
+  min-height: 60px; max-height: 300px; overflow: auto; white-space: pre-wrap;
+}

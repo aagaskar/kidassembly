@@ -1,5 +1,7 @@
 import { Lesson } from "../engine/types";
 import { Op } from "../vm/types";
+import { LESSONS_3_TO_8 } from "./lessons3to8";
+import { LESSONS_9_TO_15 } from "./lessons9to15";
 
 /**
  * Phase-1 content: Units 0–2 (§4 of the design doc), hand-authored.
@@ -8,7 +10,7 @@ import { Op } from "../vm/types";
 
 const B = (hint?: string) => ({ blank: true as const, hint });
 
-export const LESSONS: Lesson[] = [
+const LESSONS_0_TO_2: Lesson[] = [
   // ---------------------------------------------------------------- Unit 0
   {
     id: "u00.switches",
@@ -431,6 +433,8 @@ export const LESSONS: Lesson[] = [
     ],
   },
 ];
+
+export const LESSONS: Lesson[] = [...LESSONS_0_TO_2, ...LESSONS_3_TO_8, ...LESSONS_9_TO_15];
 
 export function lessonById(id: string): Lesson | undefined {
   return LESSONS.find((l) => l.id === id);

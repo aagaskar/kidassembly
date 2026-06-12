@@ -487,16 +487,18 @@ export function CViewStep({ step, onDone }: StepProps<"cview">) {
     <div className="panel">
       <p className="big">{step.text}</p>
       <div className="row cview">
-        <div className="cview-pane">
-          <h4>C</h4>
-          <pre className="c-listing">
-            {step.c.map((line, i) => (
-              <div key={i} className={i === cLine ? "asm-active" : undefined}>
-                {line || " "}
-              </div>
-            ))}
-          </pre>
-        </div>
+        {step.c.length > 0 && (
+          <div className="cview-pane">
+            <h4>C</h4>
+            <pre className="c-listing">
+              {step.c.map((line, i) => (
+                <div key={i} className={i === cLine ? "asm-active" : undefined}>
+                  {line || " "}
+                </div>
+              ))}
+            </pre>
+          </div>
+        )}
         <div className="cview-pane">
           <h4>BitBot assembly</h4>
           <AsmListing source={step.asm} activeLine={asmLine} />
