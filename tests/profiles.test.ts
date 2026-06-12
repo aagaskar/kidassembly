@@ -146,7 +146,7 @@ describe("profile export/import (§8.2 round-trip acceptance)", () => {
   it("export file matches the §8.3 envelope", () => {
     const file = exportProfileFile(createProfile("Ada", "🦄"));
     expect(file.format).toBe("bitbot-profile");
-    expect(file.formatVersion).toBe(1);
+    expect(file.formatVersion).toBe(2);
     expect(file.skills).toEqual([]);
     expect(file.telemetry).toEqual([]);
     expect(file.playgroundSaves).toEqual({ programs: [], snapshots: [] });
