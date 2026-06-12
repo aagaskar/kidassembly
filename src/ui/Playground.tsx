@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { configOf, MachineKind, VMState } from "../vm/types";
 import { createVM, pokeMemory } from "../vm/vm";
 import { fromSnapshot, SnapshotFile, toSnapshot } from "../vm/snapshot";
@@ -323,6 +323,12 @@ function MiniCPlayground() {
   const { built, error } = useMemo(() => buildMiniC(source), [source]);
   const initial = useMemo(() => createVM(built?.bytes ?? [0], 1, "bb16"), [built]);
   const machine = useMachine(initial);
+
+  // Recompile-on-edit: a fresh build replaces the loaded machine.
+  useEffect(() => {
+    machine.reset(initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial]);
 
   const asmLine = built ? built.addrToLine[machine.state.PC] : undefined;
   const cLine = built && asmLine !== undefined ? built.lineMap[asmLine] : undefined;
