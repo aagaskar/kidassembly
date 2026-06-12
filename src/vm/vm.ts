@@ -193,6 +193,13 @@ export function step(state: VMState): VMState {
     case Op.STORES:
       writeWord(state.SP + operand, state.A);
       return done({});
+
+    case Op.LOADPB:
+      return done({ A: readByte(readWord(operand)) });
+
+    case Op.STOREPB:
+      writeByte(readWord(operand), state.A & 0xff);
+      return done({});
   }
 }
 

@@ -112,7 +112,10 @@ export enum Op {
   STOREB = 18,
   LOADS = 19,
   STORES = 20,
+  /** Byte variants of the arrow instructions: `char*` dereference. */
+  LOADPB = 21,
+  STOREPB = 22,
 }
 
 export const MAX_OPCODE = 16; // bb8
-export const MAX_OPCODE_BB16 = 20;
+export const MAX_OPCODE_BB16 = 22;

@@ -44,6 +44,8 @@ const MNEMONICS: Record<string, { op: Op; hasOperand: boolean; bb16Only?: boolea
   STOREB: { op: Op.STOREB, hasOperand: true, bb16Only: true },
   LOADS: { op: Op.LOADS, hasOperand: true, bb16Only: true },
   STORES: { op: Op.STORES, hasOperand: true, bb16Only: true },
+  LOADPB: { op: Op.LOADPB, hasOperand: true, bb16Only: true },
+  STOREPB: { op: Op.STOREPB, hasOperand: true, bb16Only: true },
 };
 
 /** Levenshtein distance, for "did you mean…" suggestions. */
@@ -127,6 +129,11 @@ function parseValue(
   const ch = raw.match(/^'(.)'$/);
   if (ch) return ch[1].charCodeAt(0);
   if (/^-?\d+$/.test(raw)) return parseInt(raw, 10);
+  // label+n / label-n (used by the compiler for struct field addresses)
+  const offs = raw.match(/^([A-Za-z_][A-Za-z0-9_]*)([+-]\d+)$/);
+  if (offs) {
+    return parseValue(offs[1], symbols, line, errors) + parseInt(offs[2], 10);
+  }
   if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(raw)) {
     if (raw in symbols) return symbols[raw];
     const hint = nearest(raw, Object.keys(symbols));
