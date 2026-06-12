@@ -48,13 +48,15 @@ export function Home({
   const due = dueSkills(profile.id, SKILLS).length;
   const xp = getXP(profile.id);
 
+  const isDebug = profile.name === "debug";
+
   const rows = lessons.map((lesson) => {
     const skill = SKILLS.find((s) => s.id === lesson.id);
     const mastery = skill ? masteryOf(skill, states) : "learning";
     return {
       lesson,
       isDone: completed.has(lesson.id),
-      isLocked: mastery === "locked",
+      isLocked: isDebug ? false : mastery === "locked",
       relearning: mastery === "relearning",
     };
   });
@@ -106,9 +108,14 @@ export function Home({
                   <div className="dim">{lesson.summary}</div>
                 </div>
                 {isDone ? (
-                  <span className="feedback-good">
-                    {relearning ? "↻ in review" : "✓ done"}
-                  </span>
+                  <div className="row" style={{ alignItems: "center", gap: "0.5rem" }}>
+                    <span className="feedback-good">
+                      {relearning ? "↻ in review" : "✓ done"}
+                    </span>
+                    <button className="secondary" onClick={() => onOpenLesson(lesson.id)}>
+                      Redo
+                    </button>
+                  </div>
                 ) : (
                   <button disabled={isLocked} onClick={() => onOpenLesson(lesson.id)}>
                     {isLocked ? "🔒" : "Start"}
