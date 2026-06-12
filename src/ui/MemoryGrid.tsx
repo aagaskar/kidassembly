@@ -57,7 +57,7 @@ export function MemoryGrid({ state, viewMode, highlights = [], showPC = true, on
           const value = state.memory[addr];
           const isScreen = addr >= SCREEN_START && addr <= SCREEN_END;
           const classes = ["memcell"];
-          if (isScreen) classes.push("screen");
+          if (isScreen) classes.push("vram");
           if (showPC && !state.halted && addr === state.PC) classes.push("pc");
           if (
             showPC &&

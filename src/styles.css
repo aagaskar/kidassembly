@@ -82,7 +82,7 @@ input[type="number"], input[type="text"] {
   user-select: none;
 }
 .memcell.editable { cursor: pointer; }
-.memcell.screen { outline: 1px solid #3a4380; }
+.memcell.vram { outline: 1px solid #3a4380; }
 .memcell.pc { box-shadow: 0 0 0 3px var(--cell-hi) inset; }
 .memcell.operand { box-shadow: 0 0 0 3px var(--warn) inset; }
 .memcell.hi { box-shadow: 0 0 0 3px var(--good) inset; }
