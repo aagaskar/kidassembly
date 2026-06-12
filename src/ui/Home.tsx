@@ -1,4 +1,5 @@
 import { Lesson } from "../engine/types";
+import { Profile } from "../engine/profiles";
 
 const UNIT_NAMES: Record<number, string> = {
   0: "Unit 0 — Bits and representation",
@@ -9,11 +10,20 @@ const UNIT_NAMES: Record<number, string> = {
 interface Props {
   lessons: Lesson[];
   completed: Set<string>;
+  profile: Profile;
+  onSwitchProfile: () => void;
   onOpenLesson: (id: string) => void;
   onOpenPlayground: () => void;
 }
 
-export function Home({ lessons, completed, onOpenLesson, onOpenPlayground }: Props) {
+export function Home({
+  lessons,
+  completed,
+  profile,
+  onSwitchProfile,
+  onOpenLesson,
+  onOpenPlayground,
+}: Props) {
   // Sequential gating: a lesson unlocks when everything before it is done.
   // (The full prerequisite-graph engine replaces this in Phase 2.)
   let locked = false;
@@ -30,7 +40,12 @@ export function Home({ lessons, completed, onOpenLesson, onOpenPlayground }: Pro
     <div>
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
         <h1>🤖 BitBot</h1>
-        <button onClick={onOpenPlayground}>🛠 Playground</button>
+        <div className="row" style={{ alignItems: "center" }}>
+          <button className="secondary" title="switch profile" onClick={onSwitchProfile}>
+            {profile.avatar} {profile.name} ⇄
+          </button>
+          <button onClick={onOpenPlayground}>🛠 Playground</button>
+        </div>
       </div>
       <p className="dim">Learn how a computer REALLY works — one tiny step at a time.</p>
       {units.map((unit) => (

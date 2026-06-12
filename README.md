@@ -25,8 +25,11 @@ screen. See `docs/DESIGN.md` for the full curriculum design.
 - **Playground** — free-play sandbox: poke any memory cell, paint pixels
   (bidirectional — the screen IS memory), run examples, save/load programs
   (plain text) and full machine snapshots (versioned JSON) to local disk.
-- **Progress** — lesson completion in localStorage. (The mastery/FSRS engine
-  is Phase 2.)
+- **Local profiles** — a name + avatar picker (no passwords; a convenience,
+  not a security boundary), per-profile progress, and profile export/import
+  as a single versioned `bitbot-profile` JSON file. Progress from
+  pre-profile installs is detected and claimed into a named profile on first
+  launch. (The mastery/FSRS engine and IndexedDB storage are Phase 2.)
 
 No server, no accounts: everything is client-side.
 

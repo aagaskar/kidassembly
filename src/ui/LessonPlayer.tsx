@@ -6,7 +6,7 @@ import {
   gradeFillBlank,
   makeDrillQuestion,
 } from "../engine/grade";
-import { markComplete } from "../engine/progress";
+import { markComplete } from "../engine/profiles";
 import { OP_INFO } from "../vm/decode";
 import { useMachine } from "./useMachine";
 import { MachineView } from "./MachineView";
@@ -14,10 +14,11 @@ import { BitsExercise, BitToggles } from "./BitToggles";
 
 interface Props {
   lesson: Lesson;
+  profileId: string;
   onExit: () => void;
 }
 
-export function LessonPlayer({ lesson, onExit }: Props) {
+export function LessonPlayer({ lesson, profileId, onExit }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [done, setDone] = useState(false);
 
@@ -25,7 +26,7 @@ export function LessonPlayer({ lesson, onExit }: Props) {
     if (stepIndex + 1 < lesson.steps.length) {
       setStepIndex(stepIndex + 1);
     } else {
-      markComplete(lesson.id);
+      markComplete(profileId, lesson.id);
       setDone(true);
     }
   };
