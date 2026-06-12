@@ -48,7 +48,14 @@ export function masteryOf(
 export function recordSkillMastered(profileId: string, skill: Skill, now = new Date()): void {
   const states = loadSkillStates(profileId);
   const existing = states.get(skill.id);
-  if (existing?.mastery === "mastered") return;
+  if (existing?.mastery === "mastered") {
+    // Re-doing a suggested lesson counts as the review it was asking for.
+    if (existing.suggestedReview) {
+      states.set(skill.id, { ...existing, suggestedReview: false });
+      saveSkillStates(profileId, states);
+    }
+    return;
+  }
   states.set(skill.id, {
     skillId: skill.id,
     mastery: "mastered",
@@ -57,6 +64,34 @@ export function recordSkillMastered(profileId: string, skill: Skill, now = new D
   });
   saveSkillStates(profileId, states);
   addXP(profileId, 20); // mastery event (§5.5)
+}
+
+/**
+ * Struggle-driven remediation: when a student stumbles in a lesson, its
+ * pedagogical prerequisites (direct `subsumes` edges) become due for review
+ * immediately and get marked as suggested on the home screen. If those are
+ * shaky too, failing their reviews demotes them and cascades the same way —
+ * so one level of edges is enough here. Returns the flagged skill ids.
+ */
+export function flagPrereqsForReview(
+  profileId: string,
+  skill: Skill,
+  now = new Date()
+): string[] {
+  const states = loadSkillStates(profileId);
+  const flagged: string[] = [];
+  for (const id of skill.subsumes) {
+    const st = states.get(id);
+    if (!st?.fsrs) continue; // never mastered — nothing to schedule
+    states.set(id, {
+      ...st,
+      fsrs: { ...st.fsrs, due: now.toISOString() },
+      suggestedReview: true,
+    });
+    flagged.push(id);
+  }
+  if (flagged.length > 0) saveSkillStates(profileId, states);
+  return flagged;
 }
 
 /**
@@ -79,7 +114,7 @@ export function recordReviewOutcome(
     const streak = state.streak + 1;
     const mastery: Mastery =
       state.mastery === "relearning" && streak >= skill.relearnRule ? "mastered" : state.mastery;
-    states.set(skill.id, { ...state, fsrs, streak, mastery });
+    states.set(skill.id, { ...state, fsrs, streak, mastery, suggestedReview: false });
 
     // Layering credit: refresh every subsumed skill that's in the pool.
     const byId = new Map(allSkills.map((s) => [s.id, s]));

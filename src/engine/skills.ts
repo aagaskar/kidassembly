@@ -45,6 +45,12 @@ export interface StudentSkillState {
   fsrs: { stability: number; difficulty: number; due: string; lastReview: string } | null;
   /** Consecutive successes while learning/relearning. */
   streak: number;
+  /**
+   * Set when the student struggled in a later lesson that builds on this
+   * skill (its `subsumes` edge points here) — the home screen marks the
+   * lesson as worth a redo. Cleared by a correct review.
+   */
+  suggestedReview?: boolean;
 }
 
 /** Validate graph integrity (no dangling edges, no prereq cycles). */

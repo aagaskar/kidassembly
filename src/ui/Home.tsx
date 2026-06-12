@@ -58,6 +58,7 @@ export function Home({
       isDone: completed.has(lesson.id),
       isLocked: isDebug ? false : mastery === "locked",
       relearning: mastery === "relearning",
+      suggested: states.get(lesson.id)?.suggestedReview === true,
     };
   });
 
@@ -101,7 +102,7 @@ export function Home({
           <h3>{UNIT_NAMES[unit] ?? `Unit ${unit}`}</h3>
           {rows
             .filter((r) => r.lesson.unit === unit)
-            .map(({ lesson, isDone, isLocked, relearning }) => (
+            .map(({ lesson, isDone, isLocked, relearning, suggested }) => (
               <div key={lesson.id} className={"lesson-card" + (isLocked ? " locked" : "")}>
                 <div>
                   <b>{lesson.title}</b>
@@ -109,10 +110,19 @@ export function Home({
                 </div>
                 {isDone ? (
                   <div className="row" style={{ alignItems: "center", gap: "0.5rem" }}>
-                    <span className="feedback-good">
-                      {relearning ? "↻ in review" : "✓ done"}
-                    </span>
-                    <button className="secondary" onClick={() => onOpenLesson(lesson.id)}>
+                    {suggested && !relearning ? (
+                      <span title="A later lesson that builds on this one gave you trouble — a quick redo will help.">
+                        🔁 worth a redo
+                      </span>
+                    ) : (
+                      <span className="feedback-good">
+                        {relearning ? "↻ in review" : "✓ done"}
+                      </span>
+                    )}
+                    <button
+                      className={suggested ? undefined : "secondary"}
+                      onClick={() => onOpenLesson(lesson.id)}
+                    >
                       Redo
                     </button>
                   </div>

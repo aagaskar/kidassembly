@@ -7,7 +7,7 @@ import {
   makeDrillQuestion,
 } from "../engine/grade";
 import { markComplete } from "../engine/profiles";
-import { recordAttempt, recordSkillMastered } from "../engine/mastery";
+import { flagPrereqsForReview, recordAttempt, recordSkillMastered } from "../engine/mastery";
 import { skillById } from "../content/skills";
 import { OP_INFO } from "../vm/decode";
 import { useMachine } from "./useMachine";
@@ -26,6 +26,8 @@ export function LessonPlayer({ lesson, profileId, onExit }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [done, setDone] = useState(false);
   const stepStarted = useRef(Date.now());
+  const missCount = useRef(0);
+  const prereqsFlagged = useRef(false);
 
   const advance = () => {
     if (stepIndex + 1 < lesson.steps.length) {
@@ -48,6 +50,16 @@ export function LessonPlayer({ lesson, profileId, onExit }: Props) {
       at: new Date().toISOString(),
       context: "lesson",
     });
+    // Struggle signal: 2+ missed items in one run flags this lesson's
+    // pedagogical prerequisites for review (one miss is just learning).
+    if (!correct) {
+      missCount.current += 1;
+      if (missCount.current >= 2 && !prereqsFlagged.current) {
+        prereqsFlagged.current = true;
+        const skill = skillById(lesson.id);
+        if (skill) flagPrereqsForReview(profileId, skill);
+      }
+    }
   };
 
   if (done) {

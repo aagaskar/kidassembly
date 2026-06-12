@@ -11,6 +11,7 @@ import { checkGraph, Skill } from "../src/engine/skills";
 import {
   composeReviewSession,
   dueSkills,
+  flagPrereqsForReview,
   getXP,
   loadSkillStates,
   masteryOf,
@@ -200,6 +201,57 @@ describe("layering credit keeps review volume bounded (§5.4 acceptance)", () =>
     for (let i = 1; i < session.length; i++) {
       expect(session[i].unit).not.toBe(session[i - 1].unit);
     }
+  });
+});
+
+describe("struggle-driven remediation (suggested reviews)", () => {
+  // `walk` builds on storep and countdown — struggling in walk's lesson
+  // should send the student back to those two.
+  const storep = mkSkill("storep", 6);
+  const countdown = mkSkill("countdown", 5);
+  const never = mkSkill("never", 1); // a prereq the student hasn't reached
+  const walk = mkSkill("walk", 6, { subsumes: ["storep", "countdown", "never"] });
+  const all = [storep, countdown, never, walk];
+  const t0 = new Date("2026-01-01T00:00:00Z");
+
+  it("flags mastered prereqs as due now; unmastered ones are skipped", () => {
+    recordSkillMastered("p1", storep, t0);
+    recordSkillMastered("p1", countdown, t0);
+    const later = new Date(t0.getTime() + 2 * DAY);
+
+    const flagged = flagPrereqsForReview("p1", walk, later);
+    expect(flagged.sort()).toEqual(["countdown", "storep"]);
+
+    const states = loadSkillStates("p1");
+    expect(states.get("storep")!.suggestedReview).toBe(true);
+    expect(states.get("never")).toBeUndefined();
+    // Both are immediately due, so the daily review picks them up.
+    const due = dueSkills("p1", all, later).map((s) => s.id);
+    expect(due.sort()).toEqual(["countdown", "storep"]);
+    // Mastery is untouched — this is a nudge, not a demotion.
+    expect(states.get("storep")!.mastery).toBe("mastered");
+  });
+
+  it("a correct review clears the suggestion; a wrong one keeps it", () => {
+    recordSkillMastered("p1", storep, t0);
+    recordSkillMastered("p1", countdown, t0);
+    const later = new Date(t0.getTime() + 2 * DAY);
+    flagPrereqsForReview("p1", walk, later);
+
+    recordReviewOutcome("p1", storep, all, true, later);
+    recordReviewOutcome("p1", countdown, all, false, later);
+    const states = loadSkillStates("p1");
+    expect(states.get("storep")!.suggestedReview).toBe(false);
+    expect(states.get("countdown")!.suggestedReview).toBe(true);
+  });
+
+  it("re-doing the suggested lesson itself clears the suggestion", () => {
+    recordSkillMastered("p1", storep, t0);
+    flagPrereqsForReview("p1", walk, new Date(t0.getTime() + 2 * DAY));
+    expect(loadSkillStates("p1").get("storep")!.suggestedReview).toBe(true);
+
+    recordSkillMastered("p1", storep); // lesson re-completed
+    expect(loadSkillStates("p1").get("storep")!.suggestedReview).toBe(false);
   });
 });
 
