@@ -14,6 +14,7 @@ import {
   listProfiles,
   markComplete,
   parseProfileFile,
+  saveSettings,
   setLastActive,
 } from "../src/engine/profiles";
 
@@ -150,5 +151,12 @@ describe("profile export/import (§8.2 round-trip acceptance)", () => {
     expect(file.skills).toEqual([]);
     expect(file.telemetry).toEqual([]);
     expect(file.playgroundSaves).toEqual({ programs: [], snapshots: [] });
+  });
+
+  it("exports the debug scaffold override setting", () => {
+    const debug = createProfile("debug", "🛠️");
+    saveSettings(debug.id, { debugScaffoldLevel: "faded" });
+
+    expect(exportProfileFile(debug).profile.settings.debugScaffoldLevel).toBe("faded");
   });
 });

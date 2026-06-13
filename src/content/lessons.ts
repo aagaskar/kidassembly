@@ -54,30 +54,30 @@ const LESSONS_0_TO_2: Lesson[] = [
     steps: [
       {
         kind: "info",
-        text: "Each switch counts DOUBLE the one to its right: 1, 2, 4, 8. To read a binary number, add up the switches that are ON. 0101 means 4 + 1 = 5.",
+        text: "Binary is counting with OFF and ON switches. 0 means a switch is OFF, so it adds 0. 1 means a switch is ON, so it adds its place value. From right to left the places are 1, 2, 4, 8 — each place is DOUBLE the one before. So 0101 has the 4 switch ON and the 1 switch ON: 4 + 1 = 5.",
       },
       {
         kind: "bits",
-        text: "Four switches: 8, 4, 2, 1. Show the number 5. (Which two switches add up to 5?)",
+        text: "Four switches have place values 8, 4, 2, 1. Show the number 5. Turn ON the places you need; leave the others OFF. (Which two switches add up to 5?)",
         bitCount: 4,
         target: 5,
       },
       {
         kind: "bits",
-        text: "Show 10. (8 + 2.)",
+        text: "Show 10. Turn ON 8 and 2, and leave 4 and 1 OFF. That makes 1010.",
         bitCount: 4,
         target: 10,
       },
       {
         kind: "drill",
-        text: "Reading practice! Add up the ON switches.",
+        text: "Reading practice! 1 means ON and 0 means OFF. Add up only the ON place values.",
         drill: "bin2dec",
         count: 5,
         maxValue: 15,
       },
       {
         kind: "drill",
-        text: "Now the other way: make the number with switches.",
+        text: "Now the other way: make the number with switches. Use the place values to choose which switches are ON.",
         drill: "dec2bin",
         count: 5,
         maxValue: 15,

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="620" viewBox="0 0 960 620" role="img" aria-labelledby="title desc">
+  <title id="title">Animated screenshot of the binary lesson scaffold</title>
+  <desc id="desc">The Counting in binary lesson shows place values 8, 4, 2, 1 and animates switches turning on to make 5.</desc>
+  <style>
+    .bg{fill:#10142b}.panel{fill:#1b2145}.sub{fill:#aab1d6;font:18px Verdana,sans-serif}.txt{fill:#f2f4ff;font:20px Verdana,sans-serif}.big{fill:#f2f4ff;font:bold 26px Verdana,sans-serif}.card{fill:#232a58}.cell{fill:#2b3268}.on{fill:#ffec27}.off{fill:#2b3268;stroke:#444c8c;stroke-width:4}.accent{fill:#29adff}.dark{fill:#06121f}.good{fill:#00e436}.label{font:bold 22px Verdana,sans-serif}.small{font:15px Verdana,sans-serif}.tiny{font:13px Verdana,sans-serif}.mono{font:24px monospace;letter-spacing:4px}
+    #bit8,#bit2{animation:offPulse 6s infinite}#bit4,#bit1{animation:onPulse 6s infinite}#guide4,#guide1{animation:guideOn 6s infinite}#sum{animation:sumPulse 6s infinite}.cursor{animation:cursor 6s infinite}.check{animation:check 6s infinite}
+    @keyframes onPulse{0%,15%{fill:#2b3268;stroke:#444c8c}25%,100%{fill:#ffec27;stroke:#fff;filter:drop-shadow(0 0 8px #ffec27)}}
+    @keyframes offPulse{0%,100%{fill:#2b3268;stroke:#444c8c}}
+    @keyframes guideOn{0%,15%{fill:#2b3268}25%,100%{fill:#ffec27}}
+    @keyframes sumPulse{0%,15%{opacity:0}25%,100%{opacity:1}}
+    @keyframes cursor{0%,18%{transform:translate(725px,412px)}22%,40%{transform:translate(502px,412px)}45%,100%{transform:translate(0,0);opacity:0}}
+    @keyframes check{0%,55%{opacity:0}65%,100%{opacity:1}}
+  </style>
+  <rect class="bg" width="960" height="620"/>
+  <text x="34" y="46" class="big">Counting in binary</text>
+  <rect x="28" y="75" rx="14" width="904" height="500" class="panel"/>
+  <text x="54" y="116" class="txt">Four switches have place values 8, 4, 2, 1.</text>
+  <text x="54" y="148" class="txt">Show the number 5. Turn ON the places you need; leave the others OFF.</text>
+  <rect x="54" y="184" rx="10" width="560" height="170" class="card"/>
+  <text x="76" y="218" class="sub">Place values: left to right</text>
+  <g transform="translate(76 238)">
+    <rect width="96" height="78" rx="8" class="cell"/><text x="38" y="30" class="big">8</text><text x="22" y="56" class="sub tiny">0 = OFF</text><text x="34" y="72" class="sub tiny">+0</text>
+  </g>
+  <g transform="translate(188 238)">
+    <rect id="guide4" width="96" height="78" rx="8" class="cell"/><text x="38" y="30" class="big dark">4</text><text x="24" y="56" class="dark tiny">1 = ON</text><text x="35" y="72" class="dark tiny">+4</text>
+  </g>
+  <g transform="translate(300 238)">
+    <rect width="96" height="78" rx="8" class="cell"/><text x="38" y="30" class="big">2</text><text x="22" y="56" class="sub tiny">0 = OFF</text><text x="34" y="72" class="sub tiny">+0</text>
+  </g>
+  <g transform="translate(412 238)">
+    <rect id="guide1" width="96" height="78" rx="8" class="cell"/><text x="38" y="30" class="big dark">1</text><text x="24" y="56" class="dark tiny">1 = ON</text><text x="35" y="72" class="dark tiny">+1</text>
+  </g>
+  <text x="76" y="338" class="sub">1 means ON. 0 means OFF.</text>
+  <g transform="translate(185 386)">
+    <g transform="translate(0 0)"><circle id="bit8" cx="30" cy="30" r="25" class="off"/><text x="23" y="84" class="sub">8</text></g>
+    <g transform="translate(94 0)"><circle id="bit4" cx="30" cy="30" r="25" class="off"/><text x="23" y="84" class="sub">4</text></g>
+    <g transform="translate(188 0)"><circle id="bit2" cx="30" cy="30" r="25" class="off"/><text x="23" y="84" class="sub">2</text></g>
+    <g transform="translate(282 0)"><circle id="bit1" cx="30" cy="30" r="25" class="off"/><text x="23" y="84" class="sub">1</text></g>
+  </g>
+  <text id="sum" x="390" y="526" text-anchor="middle" class="big">adds up to: <tspan class="good">5</tspan></text>
+  <text class="cursor" x="0" y="0" font-size="34">👆</text>
+  <text id="check" x="54" y="553" class="good label">That's it! 5 ✓</text>
+</svg>

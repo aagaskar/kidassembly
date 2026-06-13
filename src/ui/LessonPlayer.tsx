@@ -6,13 +6,16 @@ import {
   gradeFillBlank,
   makeDrillQuestion,
 } from "../engine/grade";
-import { markComplete } from "../engine/profiles";
+import { currentScaffoldLevel, resolveScaffoldLevel, updateScaffoldAfterAttempt } from "../engine/scaffolding";
+import type { ScaffoldOverride, ScaffoldState } from "../engine/scaffolding";
+import { getSettings, isDebugProfile, markComplete, saveSettings } from "../engine/profiles";
 import { flagPrereqsForReview, recordAttempt, recordSkillMastered } from "../engine/mastery";
 import { skillById } from "../content/skills";
 import { OP_INFO } from "../vm/decode";
 import { useMachine } from "./useMachine";
 import { MachineView } from "./MachineView";
-import { BitsExercise, BitToggles } from "./BitToggles";
+import { BinaryPlaceValueGuide, BitsExercise, BitToggles } from "./BitToggles";
+import { ScaffoldDebugControls } from "./ScaffoldDebugControls";
 import { BugHuntStep, CViewStep, MatchStep, ParsonsStep, TargetStep, TraceStep } from "./steps";
 import { MiniCStep } from "./MiniCStep";
 
@@ -85,7 +88,13 @@ export function LessonPlayer({ lesson, profileId, onExit }: Props) {
         <div style={{ width: `${(stepIndex / lesson.steps.length) * 100}%` }} />
       </div>
       {/* key forces a clean remount per step so per-step state never leaks */}
-      <StepView key={`${lesson.id}.${stepIndex}`} step={step} onDone={advance} onOutcome={onOutcome} />
+      <StepView
+        key={`${lesson.id}.${stepIndex}`}
+        step={step}
+        profileId={profileId}
+        onDone={advance}
+        onOutcome={onOutcome}
+      />
     </div>
   );
 }
@@ -100,10 +109,12 @@ function NextButton({ onDone, label = "Next →" }: { onDone: () => void; label?
 
 export function StepView({
   step,
+  profileId,
   onDone,
   onOutcome,
 }: {
   step: Step;
+  profileId?: string;
   onDone: () => void;
   onOutcome?: (correct: boolean) => void;
 }) {
@@ -113,7 +124,7 @@ export function StepView({
     case "bits":
       return <BitsStep step={step} onDone={onDone} />;
     case "drill":
-      return <DrillStep step={step} onDone={onDone} onOutcome={onOutcome} />;
+      return <DrillStep step={step} profileId={profileId} onDone={onDone} onOutcome={onOutcome} />;
     case "quiz":
       return <QuizStep step={step} onDone={onDone} onOutcome={onOutcome} />;
     case "predict":
@@ -174,10 +185,12 @@ function BitsStep({ step, onDone }: { step: Extract<Step, { kind: "bits" }>; onD
 
 function DrillStep({
   step,
+  profileId,
   onDone,
   onOutcome,
 }: {
   step: Extract<Step, { kind: "drill" }>;
+  profileId?: string;
   onDone: () => void;
   onOutcome?: (correct: boolean) => void;
 }) {
@@ -188,6 +201,11 @@ function DrillStep({
   const [typed, setTyped] = useState("");
   const [bits, setBits] = useState(0);
   const [wrong, setWrong] = useState(false);
+  const [scaffolds, setScaffolds] = useState<ScaffoldState>({});
+  const debugScaffolding = Boolean(profileId && isDebugProfile(profileId));
+  const [scaffoldOverride, setScaffoldOverride] = useState<ScaffoldOverride>(() =>
+    debugScaffolding && profileId ? getSettings(profileId).debugScaffoldLevel ?? "auto" : "auto"
+  );
   const reported = useRef(false);
   const report = (correct: boolean) => {
     if (!reported.current) {
@@ -200,6 +218,15 @@ function DrillStep({
     () => makeDrillQuestion(step.drill, baseSeed.current + solved * 131 + attempt * 7919, step.maxValue ?? 15),
     [step, solved, attempt]
   );
+
+  const autoScaffoldLevel = currentScaffoldLevel(scaffolds, q.scaffoldId);
+  const scaffoldLevel = resolveScaffoldLevel(scaffolds, q.scaffoldId, scaffoldOverride);
+  const setDebugScaffoldOverride = (level: ScaffoldOverride) => {
+    setScaffoldOverride(level);
+    if (debugScaffolding && profileId) {
+      saveSettings(profileId, { ...getSettings(profileId), debugScaffoldLevel: level });
+    }
+  };
 
   if (solved >= step.count) {
     return (
@@ -214,7 +241,9 @@ function DrillStep({
 
   const submit = () => {
     const answer = q.mode === "type" ? parseInt(typed, 10) : bits;
-    if (answer === q.answer) {
+    const correct = answer === q.answer;
+    setScaffolds((current) => updateScaffoldAfterAttempt(current, q.scaffoldId, correct));
+    if (correct) {
       if (solved + 1 >= step.count) report(true); // clean run to the end
       setSolved(solved + 1);
       setWrong(false);
@@ -234,6 +263,21 @@ function DrillStep({
         Question {solved + 1} of {step.count}
       </p>
       <p className="big">{q.prompt}</p>
+      {debugScaffolding && (
+        <ScaffoldDebugControls
+          scaffoldId={q.scaffoldId}
+          autoLevel={autoScaffoldLevel}
+          override={scaffoldOverride}
+          onOverride={setDebugScaffoldOverride}
+        />
+      )}
+      {q.scaffoldId === "binary.placeValues" && scaffoldLevel !== "hidden" && (
+        <BinaryPlaceValueGuide
+          bitCount={q.bitCount}
+          value={q.binary ? parseInt(q.binary, 2) : q.mode === "bits" ? bits : undefined}
+          level={scaffoldLevel}
+        />
+      )}
       {q.mode === "type" ? (
         <div className="row" style={{ alignItems: "center" }}>
           <input
@@ -255,7 +299,9 @@ function DrillStep({
               className="choice"
               onClick={() => {
                 setTyped(String(i));
-                if (i === q.answer) {
+                const correct = i === q.answer;
+                setScaffolds((current) => updateScaffoldAfterAttempt(current, q.scaffoldId, correct));
+                if (correct) {
                   if (solved + 1 >= step.count) report(true);
                   setSolved(solved + 1);
                   setWrong(false);

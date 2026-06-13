@@ -179,6 +179,10 @@ export interface DrillQuestion {
   mode: "type" | "bits" | "choice";
   bitCount: number;
   answer: number;
+  /** Identifier for a reusable scaffold that can be faded as mastery improves. */
+  scaffoldId?: string;
+  /** Binary digits shown in the prompt, when a place-value scaffold can help. */
+  binary?: string;
   /** For mode "choice": the answer is an index into these. */
   choices?: string[];
 }
@@ -270,20 +274,23 @@ export function makeDrillQuestion(
       return {
         prompt: `These lights show a number in binary: ${v
           .toString(2)
-          .padStart(bits, "0")}. What number is it?`,
+          .padStart(bits, "0")}. Use the place values to add the ON switches. What number is it?`,
         mode: "type",
         bitCount: bits,
         answer: v,
+        scaffoldId: "binary.placeValues",
+        binary: v.toString(2).padStart(bits, "0"),
       };
     }
     case "dec2bin": {
       const v = randInt(rng, 1, maxValue);
       const bits = maxValue < 16 ? 4 : 8;
       return {
-        prompt: `Flip the switches to show ${v} in binary.`,
+        prompt: `Flip the switches to show ${v} in binary. Use the place values; 1 is ON and 0 is OFF.`,
         mode: "bits",
         bitCount: bits,
         answer: v,
+        scaffoldId: "binary.placeValues",
       };
     }
     case "maxn": {

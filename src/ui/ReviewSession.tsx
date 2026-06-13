@@ -89,7 +89,13 @@ export function ReviewSession({ profileId, onExit }: Props) {
       <div className="progressbar">
         <div style={{ width: `${(index / session.length) * 100}%` }} />
       </div>
-      <StepView key={`${skill.id}.${index}`} step={item} onDone={advance} onOutcome={onOutcome} />
+      <StepView
+        key={`${skill.id}.${index}`}
+        step={item}
+        profileId={profileId}
+        onDone={advance}
+        onOutcome={onOutcome}
+      />
     </div>
   );
 }

@@ -24,6 +24,8 @@ export interface ProfileSettings {
   inputMode?: "tiles" | "mixed" | "text";
   /** Parent toggle: show every playground tool regardless of progress (§8.1). */
   unlockAll?: boolean;
+  /** Debug-profile-only override for manually testing scaffold levels. */
+  debugScaffoldLevel?: "auto" | "full" | "faded" | "hidden";
   [k: string]: unknown;
 }
 

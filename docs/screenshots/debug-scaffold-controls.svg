@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">Debug scaffold controls</title>
+  <desc id="desc">The debug user sees manual scaffold controls with Auto, Full, Faded, and Hidden options above a binary place-value guide.</desc>
+  <style>
+    .bg{fill:#10142b}.panel{fill:#1b2145}.debug{fill:#1b2145;stroke:#ffa300;stroke-width:2;stroke-dasharray:7 7}.card{fill:#232a58}.cell{fill:#2b3268}.on{fill:#ffec27}.txt{fill:#f2f4ff;font:20px Verdana,sans-serif}.big{fill:#f2f4ff;font:bold 26px Verdana,sans-serif}.sub{fill:#aab1d6;font:17px Verdana,sans-serif}.dark{fill:#06121f}.button{fill:#29adff}.secondary{fill:#232a58}.btn{fill:#06121f;font:bold 16px Verdana,sans-serif}.btn2{fill:#f2f4ff;font:bold 16px Verdana,sans-serif}.tiny{font:13px Verdana,sans-serif}
+  </style>
+  <rect class="bg" width="960" height="360"/>
+  <text x="34" y="48" class="big">Debug user: manual scaffold override</text>
+  <rect x="34" y="78" rx="14" width="892" height="245" class="panel"/>
+  <text x="58" y="118" class="txt">These lights show a number in binary: <tspan class="big">0101</tspan>.</text>
+  <rect x="58" y="140" rx="12" width="720" height="92" class="debug"/>
+  <text x="78" y="173" class="txt">Debug scaffolding: binary.placeValues · auto is <tspan font-weight="bold">faded</tspan></text>
+  <g transform="translate(78 190)">
+    <rect class="button" rx="9" width="76" height="34"/><text x="18" y="23" class="btn">auto</text>
+    <rect class="secondary" x="88" rx="9" width="72" height="34"/><text x="108" y="23" class="btn2">full</text>
+    <rect class="secondary" x="172" rx="9" width="82" height="34"/><text x="190" y="23" class="btn2">faded</text>
+    <rect class="secondary" x="266" rx="9" width="86" height="34"/><text x="283" y="23" class="btn2">hidden</text>
+  </g>
+  <rect x="58" y="252" rx="10" width="530" height="76" class="card"/>
+  <text x="78" y="282" class="sub">Place-value reminder</text>
+  <g opacity=".72" transform="translate(78 294)">
+    <rect class="cell" rx="8" width="82" height="26"/><text x="31" y="20" class="txt">8</text>
+    <rect class="cell" x="94" rx="8" width="82" height="26"/><text x="125" y="20" class="txt">4</text>
+    <rect class="cell" x="188" rx="8" width="82" height="26"/><text x="219" y="20" class="txt">2</text>
+    <rect class="cell" x="282" rx="8" width="82" height="26"/><text x="313" y="20" class="txt">1</text>
+  </g>
+</svg>

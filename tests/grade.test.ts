@@ -135,3 +135,27 @@ describe("program text format", () => {
     }
   });
 });
+
+describe("scaffolding fade policy", () => {
+  it("starts full, fades after success, hides after repeated success, and restores after mistakes", async () => {
+    const { currentScaffoldLevel, resolveScaffoldLevel, updateScaffoldAfterAttempt } = await import("../src/engine/scaffolding");
+    const id = "binary.placeValues";
+    let state = {};
+
+    expect(currentScaffoldLevel(state, id)).toBe("full");
+    state = updateScaffoldAfterAttempt(state, id, true);
+    expect(currentScaffoldLevel(state, id)).toBe("faded");
+    state = updateScaffoldAfterAttempt(state, id, true);
+    expect(currentScaffoldLevel(state, id)).toBe("hidden");
+    state = updateScaffoldAfterAttempt(state, id, false);
+    expect(currentScaffoldLevel(state, id)).toBe("full");
+    expect(resolveScaffoldLevel(state, id, "hidden")).toBe("hidden");
+    expect(resolveScaffoldLevel(state, id, "auto")).toBe("full");
+  });
+
+  it("tags binary drill questions with the reusable binary scaffold", () => {
+    expect(makeDrillQuestion("bin2dec", 1).scaffoldId).toBe("binary.placeValues");
+    expect(makeDrillQuestion("dec2bin", 1).scaffoldId).toBe("binary.placeValues");
+    expect(makeDrillQuestion("opcode", 1).scaffoldId).toBeUndefined();
+  });
+});

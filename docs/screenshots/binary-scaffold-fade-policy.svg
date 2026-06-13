@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
+  <title id="title">Animated binary scaffold fade policy</title>
+  <desc id="desc">The scaffold starts full, fades after a correct answer, hides after another correct answer, and returns to full after a wrong answer.</desc>
+  <style>
+    .bg{fill:#10142b}.panel{fill:#1b2145}.card{fill:#232a58}.cell{fill:#2b3268}.on{fill:#ffec27}.txt{fill:#f2f4ff;font:20px Verdana,sans-serif}.big{fill:#f2f4ff;font:bold 26px Verdana,sans-serif}.sub{fill:#aab1d6;font:17px Verdana,sans-serif}.dark{fill:#06121f}.good{fill:#00e436}.warn{fill:#ffa300}.bad{fill:#ff004d}.tiny{font:13px Verdana,sans-serif}.hiddenBox{fill:none;stroke:#aab1d6;stroke-width:3;stroke-dasharray:8 8}
+    #full{animation:full 12s infinite}#faded{animation:faded 12s infinite}#hidden{animation:hidden 12s infinite}#restored{animation:restored 12s infinite}
+    @keyframes full{0%,24%{opacity:1}25%,100%{opacity:.18}}@keyframes faded{0%,24%{opacity:.18}25%,49%{opacity:1}50%,100%{opacity:.18}}@keyframes hidden{0%,49%{opacity:.18}50%,74%{opacity:1}75%,100%{opacity:.18}}@keyframes restored{0%,74%{opacity:.18}75%,100%{opacity:1}}
+  </style>
+  <rect class="bg" width="960" height="520"/>
+  <text x="34" y="48" class="big">Scaffolding fades, then returns after mistakes</text>
+  <text x="34" y="82" class="sub">Math Academy-style policy: explicit support → retrieval practice → immediate repair after an error.</text>
+  <g id="full" transform="translate(34 120)">
+    <rect class="panel" rx="14" width="430" height="160"/><text x="22" y="36" class="good big">1. Full scaffold</text><text x="22" y="68" class="sub">First try or after a miss.</text>
+    <g transform="translate(22 88)"><rect class="cell" rx="8" width="82" height="56"/><text x="31" y="24" class="txt">8</text><text x="16" y="45" class="sub tiny">0 = OFF</text><rect x="94" class="on" rx="8" width="82" height="56"/><text x="125" y="24" class="txt dark">4</text><text x="112" y="45" class="dark tiny">1 = ON +4</text><rect x="188" class="cell" rx="8" width="82" height="56"/><text x="219" y="24" class="txt">2</text><text x="204" y="45" class="sub tiny">0 = OFF</text><rect x="282" class="on" rx="8" width="82" height="56"/><text x="313" y="24" class="txt dark">1</text><text x="300" y="45" class="dark tiny">1 = ON +1</text></g>
+  </g>
+  <g id="faded" transform="translate(496 120)">
+    <rect class="panel" rx="14" width="430" height="160"/><text x="22" y="36" class="warn big">2. Faded scaffold</text><text x="22" y="68" class="sub">After one correct answer.</text>
+    <g opacity=".72" transform="translate(22 98)"><rect class="cell" rx="8" width="82" height="42"/><text x="31" y="28" class="txt">8</text><rect x="94" class="cell" rx="8" width="82" height="42"/><text x="125" y="28" class="txt">4</text><rect x="188" class="cell" rx="8" width="82" height="42"/><text x="219" y="28" class="txt">2</text><rect x="282" class="cell" rx="8" width="82" height="42"/><text x="313" y="28" class="txt">1</text></g>
+  </g>
+  <g id="hidden" transform="translate(34 315)">
+    <rect class="panel" rx="14" width="430" height="150"/><text x="22" y="36" class="big">3. Hidden scaffold</text><text x="22" y="68" class="sub">After repeated correct answers.</text><rect x="22" y="88" rx="10" width="365" height="42" class="hiddenBox"/><text x="70" y="116" class="sub">Student retrieves from memory.</text>
+  </g>
+  <g id="restored" transform="translate(496 315)">
+    <rect class="panel" rx="14" width="430" height="150"/><text x="22" y="36" class="bad big">4. Wrong answer restores full support</text><text x="22" y="68" class="sub">The next problem gets explicit guidance again.</text><text x="22" y="112" class="good big">Full scaffold is back ✓</text>
+  </g>
+</svg>

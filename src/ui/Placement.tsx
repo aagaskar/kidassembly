@@ -9,7 +9,11 @@ import {
 } from "../engine/placement";
 import { SKILLS } from "../content/skills";
 import { recordAttempt, seedMastered } from "../engine/mastery";
-import { BitToggles } from "./BitToggles";
+import { getSettings, isDebugProfile, saveSettings } from "../engine/profiles";
+import { currentScaffoldLevel, resolveScaffoldLevel, updateScaffoldAfterAttempt } from "../engine/scaffolding";
+import type { ScaffoldOverride, ScaffoldState } from "../engine/scaffolding";
+import { BinaryPlaceValueGuide, BitToggles } from "./BitToggles";
+import { ScaffoldDebugControls } from "./ScaffoldDebugControls";
 
 interface Props {
   profileId: string;
@@ -27,11 +31,25 @@ export function Placement({ profileId, onFinish }: Props) {
   const [typed, setTyped] = useState("");
   const [bits, setBits] = useState(0);
   const [asked, setAsked] = useState(0);
+  const [scaffolds, setScaffolds] = useState<ScaffoldState>({});
+  const debugScaffolding = isDebugProfile(profileId);
+  const [scaffoldOverride, setScaffoldOverride] = useState<ScaffoldOverride>(() =>
+    debugScaffolding ? getSettings(profileId).debugScaffoldLevel ?? "auto" : "auto"
+  );
 
   const probe = useMemo(
     () => (state.finished ? null : currentProbe(state, seed)),
     [state, seed]
   );
+
+  const autoScaffoldLevel = currentScaffoldLevel(scaffolds, probe?.scaffoldId);
+  const scaffoldLevel = resolveScaffoldLevel(scaffolds, probe?.scaffoldId, scaffoldOverride);
+  const setDebugScaffoldOverride = (level: ScaffoldOverride) => {
+    setScaffoldOverride(level);
+    if (debugScaffolding) {
+      saveSettings(profileId, { ...getSettings(profileId), debugScaffoldLevel: level });
+    }
+  };
 
   const finish = (s: PlacementState) => {
     const granted = grantedSkills(s, SKILLS);
@@ -47,6 +65,7 @@ export function Placement({ profileId, onFinish }: Props) {
   const submit = () => {
     const answer = probe.mode === "bits" ? bits : parseInt(typed, 10);
     const correct = answer === probe.answer;
+    setScaffolds((current) => updateScaffoldAfterAttempt(current, probe.scaffoldId, correct));
     recordAttempt(profileId, {
       skillId: `placement.${PLACEMENT_RUNGS[state.rung].label}`,
       itemKind: "drill",
@@ -78,6 +97,21 @@ export function Placement({ profileId, onFinish }: Props) {
         Topic: <b>{PLACEMENT_RUNGS[state.rung].label}</b> (question {asked + 1})
       </p>
       <p className="big">{probe.prompt}</p>
+      {debugScaffolding && (
+        <ScaffoldDebugControls
+          scaffoldId={probe.scaffoldId}
+          autoLevel={autoScaffoldLevel}
+          override={scaffoldOverride}
+          onOverride={setDebugScaffoldOverride}
+        />
+      )}
+      {probe.scaffoldId === "binary.placeValues" && scaffoldLevel !== "hidden" && (
+        <BinaryPlaceValueGuide
+          bitCount={probe.bitCount}
+          value={probe.binary ? parseInt(probe.binary, 2) : probe.mode === "bits" ? bits : undefined}
+          level={scaffoldLevel}
+        />
+      )}
       {probe.mode === "bits" ? (
         <div className="col">
           <BitToggles bitCount={probe.bitCount} value={bits} onChange={setBits} />
