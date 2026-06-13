@@ -3,7 +3,7 @@ import { configOf, VMState } from "../vm/types";
 import { pokeMemory, step } from "../vm/vm";
 
 const HISTORY_CAP = 5000;
-const RUN_INTERVAL_MS = 50;
+const RUN_INTERVAL_MS = 16;
 
 export interface Machine {
   state: VMState;
@@ -35,7 +35,7 @@ export function stepsPerSecond(speed: number): number {
 export function useMachine(initial: VMState): Machine {
   const [history, setHistory] = useState<VMState[]>([initial]);
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(4);
+  const [speed, setSpeed] = useState(25);
 
   const state = history[history.length - 1];
   const stateRef = useRef(state);
@@ -70,7 +70,11 @@ export function useMachine(initial: VMState): Machine {
       setRunning(false);
       return;
     }
-    const batch = Math.max(1, Math.round((stepsPerSecond(speed) * RUN_INTERVAL_MS) / 1000));
+    const nominal = Math.max(1, Math.round((stepsPerSecond(speed) * RUN_INTERVAL_MS) / 1000));
+    // Games spin-wait on TICK (`while (*tick == t) {}`), burning thousands
+    // of steps doing nothing. Allow a generous floor so the spin completes
+    // within one frame — otherwise games are unplayably slow.
+    const batch = Math.max(nominal, 5000);
     const id = setInterval(() => {
       setHistory((h) => {
         let s = h[h.length - 1];
