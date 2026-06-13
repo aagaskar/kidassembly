@@ -68,7 +68,12 @@ function NameAvatarForm({
   );
 }
 
-export function ProfilePicker({ onSelect }: { onSelect: (p: Profile) => void }) {
+export function ProfilePicker({
+  onSelect,
+}: {
+  /** isNew: freshly created here (the app offers the placement probe). */
+  onSelect: (p: Profile, isNew?: boolean) => void;
+}) {
   // refresh is a cheap re-render trigger after store mutations
   const [, setTick] = useState(0);
   const refresh = () => setTick((t) => t + 1);
@@ -214,7 +219,7 @@ export function ProfilePicker({ onSelect }: { onSelect: (p: Profile) => void }) 
             <NameAvatarForm
               prompt="New profile — pick a name and a face."
               submitLabel="Create"
-              onSubmit={(name, avatar) => onSelect(createProfile(name, avatar))}
+              onSubmit={(name, avatar) => onSelect(createProfile(name, avatar), true)}
             />
             <button className="secondary" style={{ marginTop: 8 }} onClick={() => setCreating(false)}>
               Cancel

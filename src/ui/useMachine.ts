@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { VMState } from "../vm/types";
+import { configOf, VMState } from "../vm/types";
 import { pokeMemory, step } from "../vm/vm";
 
 const HISTORY_CAP = 5000;
+const RUN_INTERVAL_MS = 16;
 
 export interface Machine {
   state: VMState;
   canStepBack: boolean;
   running: boolean;
-  speed: number; // steps per second
+  speed: number; // 1–50 slider; steps/second grows quadratically
   doStep: () => void;
   stepBack: () => void;
   setRunning: (r: boolean) => void;
@@ -17,15 +18,24 @@ export interface Machine {
   poke: (addr: number, value: number) => void;
 }
 
+/** Slider position → steps per second (quadratic: 1 … 10,000). */
+export function stepsPerSecond(speed: number): number {
+  return Math.max(1, Math.round(speed * speed * 4));
+}
+
 /**
  * Holds a history of immutable VM states so step-back is just a pop.
  * Pokes (memory edits, key presses) replace the present state in place
  * rather than appending — they aren't execution steps to rewind through.
+ *
+ * While running, steps execute in batches per animation tick (one history
+ * entry per batch, so step-back rewinds a batch), and the TICK cell
+ * advances 10×/second — the clock is just memory the host pokes (§3.2).
  */
 export function useMachine(initial: VMState): Machine {
   const [history, setHistory] = useState<VMState[]>([initial]);
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(4);
+  const [speed, setSpeed] = useState(25);
 
   const state = history[history.length - 1];
   const stateRef = useRef(state);
@@ -53,15 +63,43 @@ export function useMachine(initial: VMState): Machine {
     setHistory((h) => [...h.slice(0, -1), pokeMemory(h[h.length - 1], addr, value)]);
   }, []);
 
+  // run loop: batch of steps per tick, one history entry per batch
   useEffect(() => {
     if (!running) return;
     if (state.halted) {
       setRunning(false);
       return;
     }
-    const id = setInterval(doStep, Math.max(1000 / speed, 10));
+    const nominal = Math.max(1, Math.round((stepsPerSecond(speed) * RUN_INTERVAL_MS) / 1000));
+    // Games spin-wait on TICK (`while (*tick == t) {}`), burning thousands
+    // of steps doing nothing. Allow a generous floor so the spin completes
+    // within one frame — otherwise games are unplayably slow.
+    const batch = Math.max(nominal, 5000);
+    const id = setInterval(() => {
+      setHistory((h) => {
+        let s = h[h.length - 1];
+        if (s.halted) return h;
+        for (let i = 0; i < batch && !s.halted; i++) s = step(s);
+        const next = [...h, s];
+        return next.length > HISTORY_CAP ? next.slice(next.length - HISTORY_CAP) : next;
+      });
+    }, RUN_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [running, speed, state.halted, doStep]);
+  }, [running, speed, state.halted]);
+
+  // TICK heartbeat: 10×/second while running (§3.2 memory map)
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setHistory((h) => {
+        const present = h[h.length - 1];
+        const cfg = configOf(present);
+        const t = (present.memory[cfg.addrTick] + 1) & 0xff;
+        return [...h.slice(0, -1), pokeMemory(present, cfg.addrTick, t)];
+      });
+    }, 100);
+    return () => clearInterval(id);
+  }, [running]);
 
   return {
     state,

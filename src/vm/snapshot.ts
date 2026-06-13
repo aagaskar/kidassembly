@@ -1,11 +1,11 @@
-import { MEM_SIZE, VMState } from "./types";
+import { MachineKind, MACHINES, VMState } from "./types";
 import { createVM, pokeMemory } from "./vm";
 
 /** On-disk snapshot format (§8.3 of the design doc). */
 export interface SnapshotFile {
   format: "bitbot-snap";
   formatVersion: 1;
-  machine: "bb8";
+  machine: MachineKind;
   memory: number[];
   registers: { A: number; PC: number; SP: number };
   notes?: string;
@@ -32,18 +32,22 @@ export function fromSnapshot(snap: SnapshotFile): VMState {
       `This snapshot is version ${snap.formatVersion}, which this app doesn't understand yet.`
     );
   }
-  if (snap.memory.length !== MEM_SIZE) {
+  const machine: MachineKind = snap.machine === "bb16" ? "bb16" : "bb8";
+  const cfg = MACHINES[machine];
+  if (snap.memory.length !== cfg.memSize) {
     throw new Error(
-      `A BitBot-8 snapshot needs exactly ${MEM_SIZE} memory cells, found ${snap.memory.length}.`
+      `A ${machine === "bb16" ? "BitBot-16" : "BitBot-8"} snapshot needs exactly ${cfg.memSize} memory cells, found ${snap.memory.length}.`
     );
   }
-  let state = createVM();
-  for (let i = 0; i < MEM_SIZE; i++) state = pokeMemory(state, i, snap.memory[i]);
+  let state = createVM([], 1, machine);
+  for (let i = 0; i < cfg.memSize; i++) state = pokeMemory(state, i, snap.memory[i]);
+  const regMask = machine === "bb16" ? 0xffff : 0xff;
   return {
     ...state,
-    A: snap.registers.A & 0xff,
-    PC: snap.registers.PC & 0xff,
-    SP: snap.registers.SP & 0xff,
+    A: snap.registers.A & regMask,
+    PC: snap.registers.PC & regMask,
+    // bb16's initial SP is 4096, one past the last cell — allow it.
+    SP: Math.min(snap.registers.SP, cfg.stackInit) & 0x1ffff,
   };
 }
 

@@ -1,4 +1,4 @@
-import { Op, VMState } from "./types";
+import { configOf, Op, VMState } from "./types";
 
 export interface OpInfo {
   mnemonic: string;
@@ -93,6 +93,36 @@ export const OP_INFO: Record<number, OpInfo> = {
     hasOperand: true,
     describe: (n) => `Minus-one box ${n}; the new value also lands in A.`,
   },
+  [Op.LOADB]: {
+    mnemonic: "LOADB",
+    hasOperand: true,
+    describe: (n) => `Copy ONE byte from box ${n} into A.`,
+  },
+  [Op.STOREB]: {
+    mnemonic: "STOREB",
+    hasOperand: true,
+    describe: (n) => `Copy the low byte of A into box ${n}.`,
+  },
+  [Op.LOADS]: {
+    mnemonic: "LOADS",
+    hasOperand: true,
+    describe: (n) => `Copy the word ${n} boxes above the stack pointer into A.`,
+  },
+  [Op.STORES]: {
+    mnemonic: "STORES",
+    hasOperand: true,
+    describe: (n) => `Copy A into the word ${n} boxes above the stack pointer.`,
+  },
+  [Op.LOADPB]: {
+    mnemonic: "LOADPB",
+    hasOperand: true,
+    describe: (n) => `Follow the arrow in box ${n} and copy ONE byte from there into A.`,
+  },
+  [Op.STOREPB]: {
+    mnemonic: "STOREPB",
+    hasOperand: true,
+    describe: (n) => `Follow the arrow in box ${n} and copy A's low byte there.`,
+  },
 };
 
 /** Decode the instruction at PC into mnemonic + plain language for the UI. */
@@ -102,8 +132,13 @@ export function decodeAt(state: VMState): {
   mnemonic: string;
   text: string;
 } {
+  const cfg = configOf(state);
   const opcode = state.memory[state.PC];
-  const operand = state.memory[(state.PC + 1) % 256];
+  const operand =
+    state.machine === "bb16"
+      ? state.memory[(state.PC + 1) % cfg.memSize] |
+        (state.memory[(state.PC + 2) % cfg.memSize] << 8)
+      : state.memory[(state.PC + 1) % cfg.memSize];
   const info = OP_INFO[opcode];
   if (!info) {
     return {

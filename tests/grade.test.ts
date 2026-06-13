@@ -64,6 +64,15 @@ describe("fill-blank grading (run-and-assert)", () => {
         [99, 30],
         [20, 21],
       ],
+      "u03.add": [[25, 20]],
+      "u03.machine_code": [
+        [2, 3], // LOAD=2, STORE=3
+        [50, 50, 51], // LOAD 50 / ADD 50 / STORE 51
+      ],
+      "u03.first_pixel": [
+        [2, 136],
+        [128, 135],
+      ],
     };
     for (const lesson of LESSONS) {
       const fillblanks = lesson.steps.filter((s) => s.kind === "fillblank");

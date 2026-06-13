@@ -1,4 +1,12 @@
 import { readJSON, removeKey, writeJSON } from "./storage";
+import { Attempt, StudentSkillState } from "./skills";
+import {
+  getTelemetry,
+  getXP,
+  loadSkillStates,
+  replaceSkillStates,
+  replaceTelemetry,
+} from "./mastery";
 
 /**
  * Local profiles (§8.2): a picker convenience for families sharing a device,
@@ -11,22 +19,31 @@ export interface Profile {
   createdAt: string;
 }
 
-/** On-disk profile export (§8.3). Phase 1 fills the Phase-2 fields with
- * empty arrays and carries lesson completion in `completedLessons`; the
- * Phase-2 importer will map that onto skill states. */
+export interface ProfileSettings {
+  /** Input-mode ladder (§9): tiles → typed operands → full editor. */
+  inputMode?: "tiles" | "mixed" | "text";
+  /** Parent toggle: show every playground tool regardless of progress (§8.1). */
+  unlockAll?: boolean;
+  [k: string]: unknown;
+}
+
+/** On-disk profile export (§8.3). Version 2 carries the full Phase-2 state:
+ * skill states with FSRS schedules, telemetry, XP, settings. Version-1
+ * files (lesson completion only) still import. */
 export interface ProfileFile {
   format: "bitbot-profile";
-  formatVersion: 1;
+  formatVersion: 1 | 2;
   exportedAt: string;
   appVersion: string;
-  profile: { name: string; avatar: string; settings: Record<string, unknown> };
+  profile: { name: string; avatar: string; settings: ProfileSettings };
   completedLessons: string[];
-  skills: unknown[];
-  telemetry: unknown[];
+  skills: StudentSkillState[];
+  telemetry: Attempt[];
+  xp?: number;
   playgroundSaves: { programs: unknown[]; snapshots: unknown[] };
 }
 
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.2.0";
 const PROFILES_KEY = "kidassembly.profiles.v1";
 /** The pre-profiles progress key — a single shared record (see migration). */
 const LEGACY_PROGRESS_KEY = "kidassembly.progress.v1";
@@ -62,6 +79,15 @@ export function listProfiles(): Profile[] {
   return loadData().profiles;
 }
 
+export function profileById(profileId: string): Profile | undefined {
+  return loadData().profiles.find((p) => p.id === profileId);
+}
+
+/** The "debug" profile bypasses all gating so every lesson/tool is reachable. */
+export function isDebugProfile(profileId: string): boolean {
+  return profileById(profileId)?.name === "debug";
+}
+
 export function createProfile(name: string, avatar: string): Profile {
   const profile: Profile = {
     id: newId(),
@@ -81,6 +107,10 @@ export function deleteProfile(profileId: string): void {
   if (data.lastActiveId === profileId) data.lastActiveId = null;
   saveData(data);
   removeKey(progressKey(profileId));
+  removeKey(`kidassembly.skills.v1.${profileId}`);
+  removeKey(`kidassembly.telemetry.v1.${profileId}`);
+  removeKey(`kidassembly.xp.v1.${profileId}`);
+  removeKey(`kidassembly.settings.v1.${profileId}`);
 }
 
 export function lastActiveProfile(): Profile | null {
@@ -141,16 +171,25 @@ export function discardLegacyProgress(): void {
 
 // --------------------------------------------------- export / import
 
+export function getSettings(profileId: string): ProfileSettings {
+  return readJSON<ProfileSettings>(`kidassembly.settings.v1.${profileId}`) ?? {};
+}
+
+export function saveSettings(profileId: string, settings: ProfileSettings): void {
+  writeJSON(`kidassembly.settings.v1.${profileId}`, settings);
+}
+
 export function exportProfileFile(profile: Profile): ProfileFile {
   return {
     format: "bitbot-profile",
-    formatVersion: 1,
+    formatVersion: 2,
     exportedAt: new Date().toISOString(),
     appVersion: APP_VERSION,
-    profile: { name: profile.name, avatar: profile.avatar, settings: {} },
+    profile: { name: profile.name, avatar: profile.avatar, settings: getSettings(profile.id) },
     completedLessons: [...completedLessons(profile.id)].sort(),
-    skills: [],
-    telemetry: [],
+    skills: [...loadSkillStates(profile.id).values()],
+    telemetry: getTelemetry(profile.id),
+    xp: getXP(profile.id),
     playgroundSaves: { programs: [], snapshots: [] },
   };
 }
@@ -165,7 +204,7 @@ export function parseProfileFile(json: string): ProfileFile {
   if (file.format !== "bitbot-profile") {
     throw new Error("That file isn't a BitBot profile.");
   }
-  if (file.formatVersion !== 1) {
+  if (file.formatVersion !== 1 && file.formatVersion !== 2) {
     throw new Error(
       `This profile is version ${file.formatVersion}, which this app doesn't understand yet.`
     );
@@ -179,10 +218,20 @@ export function parseProfileFile(json: string): ProfileFile {
   return file;
 }
 
+function applyImportedState(profileId: string, file: ProfileFile): void {
+  writeJSON(progressKey(profileId), { completed: file.completedLessons });
+  saveSettings(profileId, file.profile.settings ?? {});
+  // v1 files carry no skill states; the app re-derives mastery from
+  // completedLessons at first load (App boot syncs lessons → skills).
+  replaceSkillStates(profileId, Array.isArray(file.skills) ? file.skills : []);
+  replaceTelemetry(profileId, Array.isArray(file.telemetry) ? file.telemetry : []);
+  writeJSON(`kidassembly.xp.v1.${profileId}`, file.xp ?? 0);
+}
+
 /** "Add as new profile" — never touches existing profiles (§8.2). */
 export function importAsNewProfile(file: ProfileFile): Profile {
   const profile = createProfile(file.profile.name, file.profile.avatar ?? "🤖");
-  writeJSON(progressKey(profile.id), { completed: file.completedLessons });
+  applyImportedState(profile.id, file);
   return profile;
 }
 
@@ -194,6 +243,6 @@ export function importReplacingProfile(file: ProfileFile, profileId: string): Pr
   profile.name = file.profile.name;
   profile.avatar = file.profile.avatar ?? profile.avatar;
   saveData(data);
-  writeJSON(progressKey(profileId), { completed: file.completedLessons });
+  applyImportedState(profileId, file);
   return profile;
 }
