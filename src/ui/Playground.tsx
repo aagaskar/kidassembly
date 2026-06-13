@@ -7,7 +7,7 @@ import { programToText, textToProgram } from "../files/programText";
 import { EXAMPLES } from "../content/examples";
 import { SNAKE_MINIC } from "../content/snake";
 import { SKILLS } from "../content/skills";
-import { getSettings } from "../engine/profiles";
+import { getSettings, isDebugProfile } from "../engine/profiles";
 import { loadSkillStates, masteryOf } from "../engine/mastery";
 import { assemble } from "../asm/assemble";
 import { buildMiniC } from "../minic/grade";
@@ -55,9 +55,10 @@ export function Playground({ profileId, onExit }: { profileId: string; onExit: (
 
   const unlocked = useMemo(() => {
     const settings = getSettings(profileId);
+    const debug = isDebugProfile(profileId);
     const states = loadSkillStates(profileId);
     const has = (id: string | null) => {
-      if (id === null || settings.unlockAll) return true;
+      if (id === null || settings.unlockAll || debug) return true;
       const skill = SKILLS.find((s) => s.id === id);
       if (!skill) return true;
       const m = masteryOf(skill, states);

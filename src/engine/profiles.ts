@@ -79,6 +79,15 @@ export function listProfiles(): Profile[] {
   return loadData().profiles;
 }
 
+export function profileById(profileId: string): Profile | undefined {
+  return loadData().profiles.find((p) => p.id === profileId);
+}
+
+/** The "debug" profile bypasses all gating so every lesson/tool is reachable. */
+export function isDebugProfile(profileId: string): boolean {
+  return profileById(profileId)?.name === "debug";
+}
+
 export function createProfile(name: string, avatar: string): Profile {
   const profile: Profile = {
     id: newId(),
