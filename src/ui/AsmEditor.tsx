@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { assemble, AsmError } from "../asm/assemble";
 import { MachineKind, MAX_OPCODE, MAX_OPCODE_BB16 } from "../vm/types";
 import { OP_INFO } from "../vm/decode";
@@ -21,9 +21,10 @@ interface Props {
  * right, so "names are just numbers" never goes stale (§3.4). Errors are
  * shown inline under the editor in child-friendly words.
  *
- * Errors are debounced: while the child is actively typing a line we hold off
- * on flagging it, so a half-typed instruction doesn't read as "you're wrong"
- * on every keystroke. They surface once typing pauses (or on a real run).
+ * The line the caret is on is treated as "still being typed" and never
+ * flagged — otherwise a half-typed instruction reads as "you're wrong" on
+ * every keystroke. Errors surface as soon as you move off the line (a newline,
+ * an arrow key, a click) or hit Run.
  */
 export function AsmEditor({
   value,
@@ -36,13 +37,14 @@ export function AsmEditor({
 }: Props) {
   const assembled = useMemo(() => assemble(value, machine), [value, machine]);
 
-  // Only show errors for source that has "settled" (no edits for a beat).
-  const [settled, setSettled] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setSettled(value), 700);
-    return () => clearTimeout(id);
-  }, [value]);
-  const showErrors = settled === value && assembled.errors.length > 0;
+  // 1-based source line the caret sits on; its errors are held back while
+  // the child is still typing it. null = not focused, so show everything.
+  const [editingLine, setEditingLine] = useState<number | null>(null);
+  const trackCaret = (el: HTMLTextAreaElement) => {
+    const upto = el.value.slice(0, el.selectionStart);
+    setEditingLine(upto.split("\n").length);
+  };
+  const shownErrors = assembled.errors.filter((e) => e.line !== editingLine);
 
   const lines = value.split("\n");
   const byteFor = (lineIdx: number): string => {
@@ -65,7 +67,12 @@ export function AsmEditor({
           spellCheck={false}
           readOnly={readOnly}
           rows={Math.max(rows, lines.length + 1)}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            trackCaret(e.target);
+            onChange(e.target.value);
+          }}
+          onSelect={(e) => trackCaret(e.currentTarget)}
+          onBlur={() => setEditingLine(null)}
         />
         <pre className="asm-bytes" aria-hidden>
           {lines.map((_, i) => (
@@ -76,7 +83,7 @@ export function AsmEditor({
         </pre>
         {reference && <InstructionCard machine={machine} />}
       </div>
-      {showErrors && <AsmErrors errors={assembled.errors} />}
+      {shownErrors.length > 0 && <AsmErrors errors={shownErrors} />}
     </div>
   );
 }
