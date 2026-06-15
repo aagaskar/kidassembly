@@ -219,6 +219,21 @@ input[type="number"], input[type="text"] {
   overflow-x: auto;
 }
 .asm-errors { display: flex; flex-direction: column; gap: 2px; }
+.asm-ref {
+  min-width: 230px; max-width: 300px; max-height: 320px; overflow-y: auto;
+  background: var(--panel2); border: 1px solid #3a4380; border-radius: 8px;
+  padding: 8px 10px;
+}
+.asm-ref h4 { margin: 0 0 6px; }
+.asm-ref dl { margin: 0; }
+.asm-ref-row { margin-bottom: 6px; }
+.asm-ref-row dt {
+  font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+  color: var(--accent); font-weight: 600;
+}
+.asm-ref-row dd {
+  margin: 0; font-size: 12px; line-height: 1.4; color: var(--ink-dim);
+}
 .asm-listing, .c-listing {
   margin: 0; padding: 8px; background: var(--panel2); border-radius: 8px;
   font-size: 13px; line-height: 1.5; overflow-x: auto;

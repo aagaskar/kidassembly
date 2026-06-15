@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { assemble, AsmError } from "../asm/assemble";
-import { MachineKind } from "../vm/types";
+import { MachineKind, MAX_OPCODE, MAX_OPCODE_BB16 } from "../vm/types";
+import { OP_INFO } from "../vm/decode";
 
 interface Props {
   value: string;
@@ -11,15 +12,37 @@ interface Props {
   /** Extra errors to show (e.g. from a failed run). */
   rows?: number;
   readOnly?: boolean;
+  /** Show the instruction reference card beside the editor (default true). */
+  reference?: boolean;
 }
 
 /**
  * The assembly editor: source on the left, assembled bytes per line on the
  * right, so "names are just numbers" never goes stale (§3.4). Errors are
  * shown inline under the editor in child-friendly words.
+ *
+ * Errors are debounced: while the child is actively typing a line we hold off
+ * on flagging it, so a half-typed instruction doesn't read as "you're wrong"
+ * on every keystroke. They surface once typing pauses (or on a real run).
  */
-export function AsmEditor({ value, onChange, machine = "bb8", activeLine, rows = 12, readOnly }: Props) {
+export function AsmEditor({
+  value,
+  onChange,
+  machine = "bb8",
+  activeLine,
+  rows = 12,
+  readOnly,
+  reference = true,
+}: Props) {
   const assembled = useMemo(() => assemble(value, machine), [value, machine]);
+
+  // Only show errors for source that has "settled" (no edits for a beat).
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setSettled(value), 700);
+    return () => clearTimeout(id);
+  }, [value]);
+  const showErrors = settled === value && assembled.errors.length > 0;
 
   const lines = value.split("\n");
   const byteFor = (lineIdx: number): string => {
@@ -51,8 +74,30 @@ export function AsmEditor({ value, onChange, machine = "bb8", activeLine, rows =
             </div>
           ))}
         </pre>
+        {reference && <InstructionCard machine={machine} />}
       </div>
-      {assembled.errors.length > 0 && <AsmErrors errors={assembled.errors} />}
+      {showErrors && <AsmErrors errors={assembled.errors} />}
+    </div>
+  );
+}
+
+/** Side card listing the instructions this machine understands. */
+export function InstructionCard({ machine }: { machine: MachineKind }) {
+  const maxOpcode = machine === "bb16" ? MAX_OPCODE_BB16 : MAX_OPCODE;
+  const ops = Object.entries(OP_INFO)
+    .filter(([opcode]) => Number(opcode) <= maxOpcode)
+    .map(([, info]) => info);
+  return (
+    <div className="asm-ref">
+      <h4>Instructions</h4>
+      <dl>
+        {ops.map((info) => (
+          <div key={info.mnemonic} className="asm-ref-row">
+            <dt>{info.usage}</dt>
+            <dd>{info.summary}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
