@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="620" viewBox="0 0 960 620" role="img" aria-labelledby="title desc">
+  <title id="title">Animated screenshot of binary knowledge check scaffolding</title>
+  <desc id="desc">A knowledge check keeps the place-value guide visible while reading 0101 as 5 and while making 10 with switches.</desc>
+  <style>
+    .bg{fill:#10142b}.panel{fill:#1b2145}.card{fill:#232a58}.cell{fill:#2b3268}.on{fill:#ffec27}.txt{fill:#f2f4ff;font:20px Verdana,sans-serif}.big{fill:#f2f4ff;font:bold 26px Verdana,sans-serif}.sub{fill:#aab1d6;font:18px Verdana,sans-serif}.dark{fill:#06121f}.good{fill:#00e436}.accent{fill:#29adff}.warn{fill:#ffa300}.input{fill:#232a58;stroke:#29adff;stroke-width:3}.button{fill:#29adff}.btntext{fill:#06121f;font:bold 18px Verdana,sans-serif}.tiny{font:13px Verdana,sans-serif}.small{font:15px Verdana,sans-serif}.lamp{fill:#2b3268;stroke:#444c8c;stroke-width:4}
+    #scene1{animation:s1 9s infinite}#scene2{animation:s2 9s infinite}#typed5{animation:type5 9s infinite}#wrong{animation:wrong 9s infinite}#right{animation:right 9s infinite}#d8,#d2{animation:lampOff 9s infinite}#d4,#d1{animation:lampOn 9s infinite}#m8,#m4,#m1{animation:lampOff 9s infinite}#m2{animation:lampOn2 9s infinite}#m10_8{animation:lampOn2 9s infinite}#made10{animation:made10 9s infinite}
+    @keyframes s1{0%,48%{opacity:1}52%,100%{opacity:0}}@keyframes s2{0%,48%{opacity:0}52%,100%{opacity:1}}@keyframes type5{0%,18%{opacity:0}24%,48%{opacity:1}52%,100%{opacity:0}}@keyframes right{0%,28%{opacity:0}34%,48%{opacity:1}52%,100%{opacity:0}}@keyframes wrong{0%,100%{opacity:0}}@keyframes lampOn{0%,100%{fill:#ffec27;stroke:#fff;filter:drop-shadow(0 0 8px #ffec27)}}@keyframes lampOff{0%,100%{fill:#2b3268;stroke:#444c8c}}@keyframes lampOn2{0%,58%{fill:#2b3268;stroke:#444c8c}64%,100%{fill:#ffec27;stroke:#fff;filter:drop-shadow(0 0 8px #ffec27)}}@keyframes made10{0%,65%{opacity:0}72%,100%{opacity:1}}
+  </style>
+  <rect class="bg" width="960" height="620"/>
+  <text x="34" y="46" class="big">Knowledge check keeps the scaffold</text>
+  <g id="scene1">
+    <rect x="28" y="75" rx="14" width="904" height="500" class="panel"/>
+    <text x="54" y="118" class="txt">Reading practice! 1 means ON and 0 means OFF.</text>
+    <text x="54" y="154" class="sub">Question 1 of 5</text>
+    <text x="54" y="198" class="txt">These lights show a number in binary: <tspan class="big">0101</tspan>.</text>
+    <text x="54" y="232" class="txt">Use the place values to add the ON switches. What number is it?</text>
+    <rect x="54" y="260" rx="10" width="570" height="162" class="card"/>
+    <text x="76" y="294" class="sub">Place values: left to right</text>
+    <g transform="translate(76 314)"><rect width="96" height="78" rx="8" class="cell"/><text x="38" y="30" class="big">8</text><text x="22" y="56" class="sub tiny">0 = OFF</text><text x="34" y="72" class="sub tiny">+0</text></g>
+    <g transform="translate(188 314)"><rect width="96" height="78" rx="8" class="on"/><text x="38" y="30" class="big dark">4</text><text x="24" y="56" class="dark tiny">1 = ON</text><text x="35" y="72" class="dark tiny">+4</text></g>
+    <g transform="translate(300 314)"><rect width="96" height="78" rx="8" class="cell"/><text x="38" y="30" class="big">2</text><text x="22" y="56" class="sub tiny">0 = OFF</text><text x="34" y="72" class="sub tiny">+0</text></g>
+    <g transform="translate(412 314)"><rect width="96" height="78" rx="8" class="on"/><text x="38" y="30" class="big dark">1</text><text x="24" y="56" class="dark tiny">1 = ON</text><text x="35" y="72" class="dark tiny">+1</text></g>
+    <rect x="54" y="460" rx="8" width="92" height="42" class="input"/><text id="typed5" x="86" y="489" class="txt">5</text><rect x="164" y="460" rx="10" width="98" height="42" class="button"/><text x="185" y="488" class="btntext">Check</text><text id="right" x="54" y="542" class="good big">Correct — 4 + 1 = 5 ✓</text>
+  </g>
+  <g id="scene2">
+    <rect x="28" y="75" rx="14" width="904" height="500" class="panel"/>
+    <text x="54" y="118" class="txt">Now the other way: make the number with switches.</text>
+    <text x="54" y="154" class="sub">Question 2 of 5</text>
+    <text x="54" y="198" class="txt">Flip the switches to show <tspan class="big">10</tspan> in binary.</text>
+    <text x="54" y="232" class="txt">Use the place values; 1 is ON and 0 is OFF.</text>
+    <rect x="54" y="260" rx="10" width="570" height="120" class="card"/>
+    <text x="76" y="294" class="sub">Place values: left to right</text>
+    <g transform="translate(76 314)"><rect width="96" height="48" rx="8" class="cell"/><text x="38" y="31" class="big">8</text></g><g transform="translate(188 314)"><rect width="96" height="48" rx="8" class="cell"/><text x="38" y="31" class="big">4</text></g><g transform="translate(300 314)"><rect width="96" height="48" rx="8" class="cell"/><text x="38" y="31" class="big">2</text></g><g transform="translate(412 314)"><rect width="96" height="48" rx="8" class="cell"/><text x="38" y="31" class="big">1</text></g>
+    <g transform="translate(185 414)"><g><circle id="m10_8" cx="30" cy="30" r="25" class="lamp"/><text x="23" y="84" class="sub">8</text></g><g transform="translate(94)"><circle id="m4" cx="30" cy="30" r="25" class="lamp"/><text x="23" y="84" class="sub">4</text></g><g transform="translate(188)"><circle id="m2" cx="30" cy="30" r="25" class="lamp"/><text x="23" y="84" class="sub">2</text></g><g transform="translate(282)"><circle id="m1" cx="30" cy="30" r="25" class="lamp"/><text x="23" y="84" class="sub">1</text></g></g>
+    <rect x="556" y="430" rx="10" width="98" height="42" class="button"/><text x="577" y="458" class="btntext">Check</text><text id="made10" x="54" y="542" class="good big">Correct — 8 + 2 = 10, so 1010 ✓</text>
+  </g>
+</svg>
