@@ -220,7 +220,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
     steps: [
       {
         kind: "info",
-        text: "The assembler can name BOXES too. Write \"score: .byte 0\" and the assembler picks a box for it; from then on, \"score\" means that box's ADDRESS. Names for instructions, names for boxes — every programming language above this is more of the same.",
+        text: "The assembler can name BOXES too. Write \"score: .byte 0\" — the \".byte\" part is a DIRECTIVE, a command to the assembler to set aside a box (in regular coding you'd call that making a variable). From then on, \"score\" means that box's ADDRESS. Names for instructions, names for boxes — every programming language above this is more of the same.",
       },
       {
         kind: "cview",

@@ -241,6 +241,8 @@ input[type="number"], input[type="text"] {
   padding: 8px 10px;
 }
 .asm-ref h4 { margin: 0 0 6px; }
+.asm-ref-note { margin: 0 0 8px; font-size: 12px; line-height: 1.4; color: var(--ink-dim); }
+.asm-ref-note code { color: var(--accent); }
 .asm-ref dl { margin: 0; }
 .asm-ref-row { margin-bottom: 6px; }
 .asm-ref-row dt {

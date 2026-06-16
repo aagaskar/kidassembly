@@ -53,6 +53,20 @@ last:   .byte 192
     expect(errors[0].message).toContain("LOADC");
   });
 
+  it("instructions are case-sensitive — lowercase is named explicitly", () => {
+    const { result, errors } = assemble(`loadc 5\nstore 20\nhalt`, "bb8");
+    expect(result).toBeNull();
+    expect(errors[0].message).toMatch(/UPPERCASE/);
+    expect(errors[0].message).toContain(`"LOADC"`);
+    expect(errors[0].message).toContain(`"loadc"`);
+  });
+
+  it("directives are case-sensitive — uppercase .BYTE is named explicitly", () => {
+    const { errors } = assemble(`x: .BYTE 1`, "bb8");
+    expect(errors[0].message).toMatch(/lowercase/);
+    expect(errors[0].message).toContain(`".byte"`);
+  });
+
   it("rejects bb16-only instructions on bb8", () => {
     const { errors } = assemble(`LOADB 5`, "bb8");
     expect(errors[0].message).toMatch(/BitBot-16/);

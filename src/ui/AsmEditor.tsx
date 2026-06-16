@@ -97,6 +97,9 @@ export function InstructionCard({ machine }: { machine: MachineKind }) {
   return (
     <div className="asm-ref">
       <h4>Instructions</h4>
+      <p className="asm-ref-note">
+        Type instructions in CAPITALS, like real assembly — <code>HALT</code>, not <code>halt</code>.
+      </p>
       <dl>
         {ops.map((info) => (
           <div key={info.mnemonic} className="asm-ref-row">
