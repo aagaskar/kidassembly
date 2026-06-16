@@ -4,7 +4,7 @@ import {
   buildState,
   expectedPrediction,
   gradeFillBlank,
-  makeDrillQuestion,
+  makeDistinctDrillQuestion,
 } from "../engine/grade";
 import { currentScaffoldLevel, resolveScaffoldLevel, updateScaffoldAfterAttempt } from "../engine/scaffolding";
 import type { ScaffoldOverride, ScaffoldState } from "../engine/scaffolding";
@@ -217,10 +217,22 @@ function DrillStep({
     }
   };
 
+  // The last prompt the child saw, so the next question is never identical
+  // back-to-back (a real annoyance when a drill's value space is small).
+  const lastPrompt = useRef<string | undefined>(undefined);
   const q = useMemo(
-    () => makeDrillQuestion(step.drill, baseSeed.current + solved * 131 + attempt * 7919, step.maxValue ?? 15),
+    () =>
+      makeDistinctDrillQuestion(
+        step.drill,
+        baseSeed.current + solved * 131 + attempt * 7919,
+        step.maxValue ?? 15,
+        lastPrompt.current
+      ),
     [step, solved, attempt]
   );
+  useEffect(() => {
+    lastPrompt.current = q.prompt;
+  }, [q]);
 
   const autoScaffoldLevel = currentScaffoldLevel(scaffolds, q.scaffoldId);
   const scaffoldLevel = resolveScaffoldLevel(scaffolds, q.scaffoldId, scaffoldOverride);

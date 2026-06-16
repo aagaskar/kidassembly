@@ -324,3 +324,22 @@ export function makeDrillQuestion(
     }
   }
 }
+
+/**
+ * Like makeDrillQuestion, but won't hand back the same prompt twice in a row:
+ * if the freshly generated question matches `avoidPrompt`, nudge the seed and
+ * try again. Bounded so a drill with a tiny question space still terminates.
+ */
+export function makeDistinctDrillQuestion(
+  drill: import("./types").DrillKind,
+  seed: number,
+  maxValue = 15,
+  avoidPrompt?: string
+): DrillQuestion {
+  let q = makeDrillQuestion(drill, seed, maxValue);
+  for (let i = 0; i < 20 && q.prompt === avoidPrompt; i++) {
+    seed += 104729; // a prime, to jump to an unrelated part of the sequence
+    q = makeDrillQuestion(drill, seed, maxValue);
+  }
+  return q;
+}

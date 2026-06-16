@@ -5,6 +5,7 @@ import {
   gradeFillBlank,
   gradePredict,
   gradeTarget,
+  makeDistinctDrillQuestion,
   makeDrillQuestion,
 } from "../src/engine/grade";
 import { LESSONS } from "../src/content/lessons";
@@ -116,6 +117,16 @@ describe("drill generation (parameterized items, §5.3)", () => {
       Array.from({ length: 50 }, (_, i) => makeDrillQuestion("bin2dec", i + 1).answer)
     );
     expect(answers.size).toBeGreaterThan(3);
+  });
+
+  it("never repeats the same prompt back-to-back (small value spaces included)", () => {
+    // maxn with a 4-value space is the worst case for accidental repeats.
+    let prev: string | undefined;
+    for (let seed = 1; seed <= 200; seed++) {
+      const q = makeDistinctDrillQuestion("maxn", seed, 4, prev);
+      expect(q.prompt).not.toBe(prev);
+      prev = q.prompt;
+    }
   });
 
   it("answers are always within range", () => {
