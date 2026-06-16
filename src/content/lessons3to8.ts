@@ -140,12 +140,12 @@ export const LESSONS_3_TO_8: Lesson[] = [
   {
     id: "u03.wraparound",
     unit: 3,
-    title: "The odometer trick",
-    summary: "A byte can't hold more than 255 — it wraps around to 0.",
+    title: "The overflow problem",
+    summary: "A byte can't hold more than 255 — add past it and the extra digit overflows to 0.",
     steps: [
       {
         kind: "info",
-        text: "A box holds 0 to 255 and NOTHING else. So what happens at 255 + 1? It wraps around to 0, like an odometer rolling over. This isn't a bug — it's what 8 switches must do.",
+        text: "A box holds 0 to 255 and NOTHING else. So what happens at 255 + 1? The real answer, 256, needs a 9th digit — but the box only has 8 switches. That extra digit doesn't fit, so it falls off and we're left with 0. Losing the digit that won't fit is called overflow. It isn't a bug — it's what 8 switches must do.",
       },
       {
         kind: "predict",
@@ -352,7 +352,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
     steps: [
       {
         kind: "info",
-        text: "Remember the odometer trick? 255 + 1 wraps to 0. So in byte-land, 255 BEHAVES like −1: add it, and you go down by one. 254 behaves like −2. This trick is called two's complement, and it's how every real computer does negative numbers.",
+        text: "Remember overflow? 255 + 1 wraps to 0. So in byte-land, 255 BEHAVES like −1: add it, and you go down by one. 254 behaves like −2. This trick is called two's complement, and it's how every real computer does negative numbers.",
       },
       {
         kind: "drill",
