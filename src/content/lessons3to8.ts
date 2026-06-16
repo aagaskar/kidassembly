@@ -392,7 +392,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
       },
       {
         kind: "trace",
-        text: "Trace this countdown! Box \"count\" starts at 3. Each row of the table is one visit to the top of the loop (box 0). Fill in count and A at each visit.",
+        text: "Trace this countdown! \"count\" lives in box 8 and starts at 3. The loop's first line is box 0 — each time the machine comes back to it is one \"visit.\" For each visit, write count and A as they are the moment it arrives, before that line runs again.",
         sim: {
           asm: "loop: MINUSONE count\nJZ done\nJUMP loop\ndone: HALT\ncount: .byte 3",
         },
