@@ -4,6 +4,7 @@ import {
   expectedPrediction,
   gradeFillBlank,
   gradePredict,
+  gradeTarget,
   makeDrillQuestion,
 } from "../src/engine/grade";
 import { LESSONS } from "../src/content/lessons";
@@ -85,6 +86,21 @@ describe("fill-blank grading (run-and-assert)", () => {
         expect(pass, `${lesson.id} fillblank #${i} reference solution must pass`).toBe(true);
       });
     }
+  });
+});
+
+describe("target grading: named result boxes (expectSymbols)", () => {
+  const check = { cases: [{ A: 42, expectSymbols: { total: 42 } }] };
+
+  it("passes when the sum is actually stored in the named box", () => {
+    const src = "LOAD apples\nADD bananas\nSTORE total\nHALT\napples: .byte 20\nbananas: .byte 22\ntotal: .byte 0";
+    expect(gradeTarget(src, check).pass).toBe(true);
+  });
+
+  it("fails when the program skips storing into the box (box stays useless)", () => {
+    // Ends with 42 in A, so the old A-only check would have passed.
+    const src = "LOAD apples\nADD bananas\nHALT\napples: .byte 20\nbananas: .byte 22\ntotal: .byte 0";
+    expect(gradeTarget(src, check).pass).toBe(false);
   });
 });
 

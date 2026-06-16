@@ -235,7 +235,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
         text: "Declare boxes apples (holding 20), bananas (holding 22) and total (holding 0) with labels, then add the fruit into total. The machine must END with the sum in A. (Hint: STORE doesn't change A.)",
         starter: "; your code here, then your labeled boxes\n",
         check: {
-          cases: [{ A: 42 }],
+          cases: [{ A: 42, expectSymbols: { total: 42 } }],
           maxSteps: 1000,
         },
         solution: "LOAD apples\nADD bananas\nSTORE total\nHALT\napples:  .byte 20\nbananas: .byte 22\ntotal:   .byte 0",
@@ -274,7 +274,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
         text: "A program with three variables: load x, subtract y, store the answer in z. Declare all three as labels (give x the value 50 and y the value 8 in their .byte lines).",
         starter: "; code first, then your labeled boxes\n",
         check: {
-          cases: [{ A: 42 }],
+          cases: [{ A: 42, expectSymbols: { z: 42 } }],
           maxSteps: 1000,
         },
         solution: "LOAD x\nSUB y\nSTORE z\nHALT\nx: .byte 50\ny: .byte 8\nz: .byte 0",
