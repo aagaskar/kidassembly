@@ -201,6 +201,9 @@ function DrillStep({
   const [typed, setTyped] = useState("");
   const [bits, setBits] = useState(0);
   const [wrong, setWrong] = useState(false);
+  const [flash, setFlash] = useState(false);
+  const flashTimer = useRef<number>();
+  useEffect(() => () => clearTimeout(flashTimer.current), []);
   const [scaffolds, setScaffolds] = useState<ScaffoldState>({});
   const debugScaffolding = Boolean(profileId && isDebugProfile(profileId));
   const [scaffoldOverride, setScaffoldOverride] = useState<ScaffoldOverride>(() =>
@@ -239,14 +242,15 @@ function DrillStep({
     );
   }
 
-  const submit = () => {
-    const answer = q.mode === "type" ? parseInt(typed, 10) : bits;
-    const correct = answer === q.answer;
+  const grade = (correct: boolean) => {
     setScaffolds((current) => updateScaffoldAfterAttempt(current, q.scaffoldId, correct));
     if (correct) {
       if (solved + 1 >= step.count) report(true); // clean run to the end
       setSolved(solved + 1);
       setWrong(false);
+      setFlash(true); // brief "Correct!" before the next question slides in
+      clearTimeout(flashTimer.current);
+      flashTimer.current = window.setTimeout(() => setFlash(false), 900);
     } else {
       report(false); // any miss counts the drill as a miss for mastery
       setAttempt(attempt + 1); // new question, no answer reveal
@@ -256,13 +260,17 @@ function DrillStep({
     setBits(0);
   };
 
+  const submit = () => {
+    const answer = q.mode === "type" ? parseInt(typed, 10) : bits;
+    grade(answer === q.answer);
+  };
+
   return (
     <div className="panel">
-      <p className="big">{step.text}</p>
       <p className="dim">
-        Question {solved + 1} of {step.count}
+        {step.text} &nbsp;·&nbsp; Question {solved + 1} of {step.count}
       </p>
-      <p className="big">{q.prompt}</p>
+      <p className="question">{q.prompt}</p>
       {debugScaffolding && (
         <ScaffoldDebugControls
           scaffoldId={q.scaffoldId}
@@ -297,21 +305,7 @@ function DrillStep({
             <button
               key={i}
               className="choice"
-              onClick={() => {
-                setTyped(String(i));
-                const correct = i === q.answer;
-                setScaffolds((current) => updateScaffoldAfterAttempt(current, q.scaffoldId, correct));
-                if (correct) {
-                  if (solved + 1 >= step.count) report(true);
-                  setSolved(solved + 1);
-                  setWrong(false);
-                } else {
-                  report(false);
-                  setAttempt(attempt + 1);
-                  setWrong(true);
-                }
-                setTyped("");
-              }}
+              onClick={() => grade(i === q.answer)}
             >
               {choice}
             </button>
@@ -325,6 +319,7 @@ function DrillStep({
           </div>
         </div>
       )}
+      {flash && <p className="feedback-good flash">Correct! ✓</p>}
       {wrong && <p className="feedback-bad">Not quite — here's a different one. You've got this!</p>}
     </div>
   );
