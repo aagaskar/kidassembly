@@ -180,10 +180,11 @@ export function assemble(source: string, machine: MachineKind = "bb8"): {
     if (t.mnemonic === null) continue;
     placed.push({ ...t, addr });
 
-    const upper = t.mnemonic.toUpperCase();
-    if (upper === ".BYTE") {
+    // Sizing: directives reserve data; everything else reserves an
+    // instruction slot (unknown/mis-cased tokens error in pass 2).
+    if (t.mnemonic === ".byte") {
       addr += Math.max(1, t.args.length);
-    } else if (upper === ".WORD") {
+    } else if (t.mnemonic === ".word") {
       addr += Math.max(1, t.args.length) * wordDirBytes;
     } else {
       addr += cfg.instrBytes;
@@ -203,9 +204,9 @@ export function assemble(source: string, machine: MachineKind = "bb8"): {
 
   for (const t of placed) {
     lineToAddr[t.line] = t.addr;
-    const upper = t.mnemonic!.toUpperCase();
+    const mnemonic = t.mnemonic!;
 
-    if (upper === ".BYTE") {
+    if (mnemonic === ".byte") {
       if (t.args.length === 0) {
         errors.push({ line: t.line + 1, message: `.byte needs at least one number after it.` });
         emit(t.line, t.addr, 0);
@@ -217,7 +218,7 @@ export function assemble(source: string, machine: MachineKind = "bb8"): {
       continue;
     }
 
-    if (upper === ".WORD") {
+    if (mnemonic === ".word") {
       if (machine !== "bb16") {
         errors.push({
           line: t.line + 1,
@@ -237,42 +238,56 @@ export function assemble(source: string, machine: MachineKind = "bb8"): {
       continue;
     }
 
-    const info = MNEMONICS[upper];
+    const info = MNEMONICS[mnemonic];
     if (!info) {
-      const hint = nearest(upper, Object.keys(MNEMONICS));
-      errors.push({
-        line: t.line + 1,
-        message:
-          `I don't know an instruction called "${t.mnemonic}"` +
-          (hint ? ` — did you mean ${hint}?` : "."),
-      });
+      // Instructions are case-sensitive (UPPERCASE), like real assembly.
+      // Catch a wrong-case spelling and name the rule instead of a vague miss.
+      if (mnemonic.toUpperCase() in MNEMONICS) {
+        errors.push({
+          line: t.line + 1,
+          message: `Instructions are UPPERCASE — write "${mnemonic.toUpperCase()}", not "${mnemonic}".`,
+        });
+      } else if (mnemonic.toLowerCase() === ".byte" || mnemonic.toLowerCase() === ".word") {
+        errors.push({
+          line: t.line + 1,
+          message: `Directives are lowercase — write "${mnemonic.toLowerCase()}", not "${mnemonic}".`,
+        });
+      } else {
+        const hint = nearest(mnemonic, Object.keys(MNEMONICS));
+        errors.push({
+          line: t.line + 1,
+          message:
+            `I don't know an instruction called "${mnemonic}"` +
+            (hint ? ` — did you mean ${hint}?` : "."),
+        });
+      }
       continue;
     }
     if (info.bb16Only && machine !== "bb16") {
       errors.push({
         line: t.line + 1,
-        message: `${upper} only exists on BitBot-16 — the little BitBot-8 doesn't have it.`,
+        message: `${mnemonic} only exists on BitBot-16 — the little BitBot-8 doesn't have it.`,
       });
       continue;
     }
     if (info.hasOperand && t.args.length === 0) {
       errors.push({
         line: t.line + 1,
-        message: `${upper} needs something after it — a number or a label.`,
+        message: `${mnemonic} needs something after it — a number or a label.`,
       });
       continue;
     }
     if (!info.hasOperand && t.args.length > 0) {
       errors.push({
         line: t.line + 1,
-        message: `${upper} works alone — it doesn't take anything after it.`,
+        message: `${mnemonic} works alone — it doesn't take anything after it.`,
       });
       continue;
     }
     if (t.args.length > 1) {
       errors.push({
         line: t.line + 1,
-        message: `${upper} takes just one thing after it, but I found ${t.args.length}.`,
+        message: `${mnemonic} takes just one thing after it, but I found ${t.args.length}.`,
       });
       continue;
     }

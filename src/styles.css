@@ -82,6 +82,8 @@ input[type="number"], input[type="text"] {
   user-select: none;
 }
 .memcell.editable { cursor: pointer; }
+.memcell.zero { color: #6b74b8; }
+.memcell:not(.zero) { font-weight: 700; }
 .memcell.vram { outline: 1px solid #3a4380; }
 .memcell.pc { box-shadow: 0 0 0 3px var(--cell-hi) inset; }
 .memcell.operand { box-shadow: 0 0 0 3px var(--warn) inset; }
@@ -173,6 +175,20 @@ input[type="number"], input[type="text"] {
 .lesson-card.locked { opacity: 0.45; }
 .feedback-good { color: var(--good); font-weight: bold; }
 .feedback-bad { color: var(--warn); font-weight: bold; }
+.feedback-good.flash { animation: flashpop 0.9s ease-out; }
+@keyframes flashpop {
+  0%   { transform: scale(1.15); opacity: 0; }
+  15%  { transform: scale(1);    opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.question {
+  font-size: 1.25em;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.35;
+  margin: 0.1em 0 0.2em;
+}
 .choice {
   display: block; width: 100%; text-align: left; margin: 6px 0;
   background: var(--panel2); color: var(--ink);
@@ -225,6 +241,8 @@ input[type="number"], input[type="text"] {
   padding: 8px 10px;
 }
 .asm-ref h4 { margin: 0 0 6px; }
+.asm-ref-note { margin: 0 0 8px; font-size: 12px; line-height: 1.4; color: var(--ink-dim); }
+.asm-ref-note code { color: var(--accent); }
 .asm-ref dl { margin: 0; }
 .asm-ref-row { margin-bottom: 6px; }
 .asm-ref-row dt {

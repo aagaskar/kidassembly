@@ -140,12 +140,12 @@ export const LESSONS_3_TO_8: Lesson[] = [
   {
     id: "u03.wraparound",
     unit: 3,
-    title: "The odometer trick",
-    summary: "A byte can't hold more than 255 — it wraps around to 0.",
+    title: "The overflow problem",
+    summary: "A byte can't hold more than 255 — add past it and the extra digit overflows to 0.",
     steps: [
       {
         kind: "info",
-        text: "A box holds 0 to 255 and NOTHING else. So what happens at 255 + 1? It wraps around to 0, like an odometer rolling over. This isn't a bug — it's what 8 switches must do.",
+        text: "A box holds 0 to 255 and NOTHING else. So what happens at 255 + 1? The real answer, 256, needs a 9th digit — but the box only has 8 switches. That extra digit doesn't fit, so it falls off and we're left with 0. Losing the digit that won't fit is called overflow. It isn't a bug — it's what 8 switches must do.",
       },
       {
         kind: "predict",
@@ -220,7 +220,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
     steps: [
       {
         kind: "info",
-        text: "The assembler can name BOXES too. Write \"score: .byte 0\" and the assembler picks a box for it; from then on, \"score\" means that box's ADDRESS. Names for instructions, names for boxes — every programming language above this is more of the same.",
+        text: "The assembler can name BOXES too. Write \"score: .byte 0\" — the \".byte\" part is a DIRECTIVE, a command to the assembler to set aside a box (in regular coding you'd call that making a variable). From then on, \"score\" means that box's ADDRESS. Names for instructions, names for boxes — every programming language above this is more of the same.",
       },
       {
         kind: "cview",
@@ -235,7 +235,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
         text: "Declare boxes apples (holding 20), bananas (holding 22) and total (holding 0) with labels, then add the fruit into total. The machine must END with the sum in A. (Hint: STORE doesn't change A.)",
         starter: "; your code here, then your labeled boxes\n",
         check: {
-          cases: [{ A: 42 }],
+          cases: [{ A: 42, expectSymbols: { total: 42 } }],
           maxSteps: 1000,
         },
         solution: "LOAD apples\nADD bananas\nSTORE total\nHALT\napples:  .byte 20\nbananas: .byte 22\ntotal:   .byte 0",
@@ -271,10 +271,10 @@ export const LESSONS_3_TO_8: Lesson[] = [
       },
       {
         kind: "target",
-        text: "A program with three variables: load x, subtract y, store the answer in z. Declare all three as labels (give x the value 50 and y the value 8 in their .byte lines).",
+        text: "Three variables: x, y, and z. Work out x − y and leave the answer in z. Declare all three as labels — give x the value 50 and y the value 8 in their .byte lines (z starts at 0).",
         starter: "; code first, then your labeled boxes\n",
         check: {
-          cases: [{ A: 42 }],
+          cases: [{ A: 42, expectSymbols: { z: 42 } }],
           maxSteps: 1000,
         },
         solution: "LOAD x\nSUB y\nSTORE z\nHALT\nx: .byte 50\ny: .byte 8\nz: .byte 0",
@@ -352,7 +352,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
     steps: [
       {
         kind: "info",
-        text: "Remember the odometer trick? 255 + 1 wraps to 0. So in byte-land, 255 BEHAVES like −1: add it, and you go down by one. 254 behaves like −2. This trick is called two's complement, and it's how every real computer does negative numbers.",
+        text: "Remember overflow? 255 + 1 wraps to 0. So in byte-land, 255 BEHAVES like −1: add it, and you go down by one. 254 behaves like −2. This trick is called two's complement, and it's how every real computer does negative numbers.",
       },
       {
         kind: "drill",
@@ -392,7 +392,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
       },
       {
         kind: "trace",
-        text: "Trace this countdown! Box \"count\" starts at 3. Each row of the table is one visit to the top of the loop (box 0). Fill in count and A at each visit.",
+        text: "Trace this countdown! \"count\" lives in box 8 and starts at 3. The loop's first line is box 0 — each time the machine comes back to it is one \"visit.\" For each visit, write count and A as they are the moment it arrives, before that line runs again.",
         sim: {
           asm: "loop: MINUSONE count\nJZ done\nJUMP loop\ndone: HALT\ncount: .byte 3",
         },

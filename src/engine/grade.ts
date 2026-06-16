@@ -92,7 +92,13 @@ export function gradeFillBlank(
 
 // ------------------------------------------------------- run-and-assert
 
-function runCase(bytes: number[], c: TargetCase, machine: MachineKind, maxSteps: number): {
+function runCase(
+  bytes: number[],
+  c: TargetCase,
+  machine: MachineKind,
+  maxSteps: number,
+  symbols: Record<string, number> = {}
+): {
   pass: boolean;
   finalState: VMState;
 } {
@@ -108,6 +114,20 @@ function runCase(bytes: number[], c: TargetCase, machine: MachineKind, maxSteps:
   if (c.cells) {
     for (const [addr, value] of Object.entries(c.cells)) {
       pass &&= final.memory[Number(addr)] === value;
+    }
+  }
+  // Expected values in named boxes, resolved through the student's own labels
+  // (their addresses depend on how much code they wrote).
+  if (c.expectSymbols) {
+    for (const [name, value] of Object.entries(c.expectSymbols)) {
+      const addr = symbols[name];
+      if (addr === undefined) {
+        pass = false;
+        continue;
+      }
+      const got =
+        machine === "bb16" ? final.memory[addr] | (final.memory[addr + 1] << 8) : final.memory[addr];
+      pass &&= got === value;
     }
   }
   return { pass, finalState: final };
@@ -135,7 +155,7 @@ export function gradeTarget(
   if (!result) return { pass: false, asmErrors: errors, finalState: null, failedCase: null };
   let firstFinal: VMState | null = null;
   for (let i = 0; i < check.cases.length; i++) {
-    const r = runCase(result.bytes, check.cases[i], machine, check.maxSteps ?? 100_000);
+    const r = runCase(result.bytes, check.cases[i], machine, check.maxSteps ?? 100_000, result.symbols);
     firstFinal ??= r.finalState;
     if (!r.pass) {
       return { pass: false, asmErrors: [], finalState: r.finalState, failedCase: i };
@@ -303,4 +323,23 @@ export function makeDrillQuestion(
       };
     }
   }
+}
+
+/**
+ * Like makeDrillQuestion, but won't hand back the same prompt twice in a row:
+ * if the freshly generated question matches `avoidPrompt`, nudge the seed and
+ * try again. Bounded so a drill with a tiny question space still terminates.
+ */
+export function makeDistinctDrillQuestion(
+  drill: import("./types").DrillKind,
+  seed: number,
+  maxValue = 15,
+  avoidPrompt?: string
+): DrillQuestion {
+  let q = makeDrillQuestion(drill, seed, maxValue);
+  for (let i = 0; i < 20 && q.prompt === avoidPrompt; i++) {
+    seed += 104729; // a prime, to jump to an unrelated part of the sequence
+    q = makeDrillQuestion(drill, seed, maxValue);
+  }
+  return q;
 }

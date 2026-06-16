@@ -4,6 +4,8 @@ import {
   expectedPrediction,
   gradeFillBlank,
   gradePredict,
+  gradeTarget,
+  makeDistinctDrillQuestion,
   makeDrillQuestion,
 } from "../src/engine/grade";
 import { LESSONS } from "../src/content/lessons";
@@ -88,6 +90,21 @@ describe("fill-blank grading (run-and-assert)", () => {
   });
 });
 
+describe("target grading: named result boxes (expectSymbols)", () => {
+  const check = { cases: [{ A: 42, expectSymbols: { total: 42 } }] };
+
+  it("passes when the sum is actually stored in the named box", () => {
+    const src = "LOAD apples\nADD bananas\nSTORE total\nHALT\napples: .byte 20\nbananas: .byte 22\ntotal: .byte 0";
+    expect(gradeTarget(src, check).pass).toBe(true);
+  });
+
+  it("fails when the program skips storing into the box (box stays useless)", () => {
+    // Ends with 42 in A, so the old A-only check would have passed.
+    const src = "LOAD apples\nADD bananas\nHALT\napples: .byte 20\nbananas: .byte 22\ntotal: .byte 0";
+    expect(gradeTarget(src, check).pass).toBe(false);
+  });
+});
+
 describe("drill generation (parameterized items, §5.3)", () => {
   it("is deterministic for a given seed", () => {
     const a = makeDrillQuestion("bin2dec", 42);
@@ -100,6 +117,16 @@ describe("drill generation (parameterized items, §5.3)", () => {
       Array.from({ length: 50 }, (_, i) => makeDrillQuestion("bin2dec", i + 1).answer)
     );
     expect(answers.size).toBeGreaterThan(3);
+  });
+
+  it("never repeats the same prompt back-to-back (small value spaces included)", () => {
+    // maxn with a 4-value space is the worst case for accidental repeats.
+    let prev: string | undefined;
+    for (let seed = 1; seed <= 200; seed++) {
+      const q = makeDistinctDrillQuestion("maxn", seed, 4, prev);
+      expect(q.prompt).not.toBe(prev);
+      prev = q.prompt;
+    }
   });
 
   it("answers are always within range", () => {
