@@ -148,6 +148,20 @@ export const LESSONS_3_TO_8: Lesson[] = [
         text: "A box holds 0 to 255 and NOTHING else. So what happens at 255 + 1? The real answer, 256, needs a 9th digit — but the box only has 8 switches. That extra digit doesn't fit, so it falls off and we're left with 0. Losing the digit that won't fit is called overflow. It isn't a bug — it's what 8 switches must do.",
       },
       {
+        kind: "info",
+        text: "Let's WATCH it. A is loaded with 255 — every light ON. Step once more to ADD box 12, which holds 1. The honest answer is 256… but there's no 9th light to turn on, so all 8 flip OFF together and leave 0 behind. Step through it and see.",
+        sim: { program: [Op.LOADC, 255, Op.ADD, 12, Op.HALT, 0], memory: { 12: 1 } },
+      },
+      {
+        kind: "info",
+        text: "Now the other direction. A holds 5; step once more to SUB box 12, which holds 6. You can't drop below 0, so the count falls off the BOTTOM and reappears at the TOP: 255. Step it and watch A wrap around.",
+        sim: { program: [Op.LOADC, 5, Op.SUB, 12, Op.HALT, 0], memory: { 12: 6 } },
+      },
+      {
+        kind: "info",
+        text: "Those were the worked examples — now your turn to predict before you step. Same rule both times: when the count runs off either end, it wraps around.",
+      },
+      {
         kind: "predict",
         text: "A becomes 250, then we ADD box 12, which holds 10. There is no 260! Predict A.",
         sim: { program: [Op.LOADC, 250, Op.ADD, 12, Op.HALT, 0], memory: { 12: 10 } },
