@@ -271,7 +271,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
       },
       {
         kind: "target",
-        text: "A program with three variables: load x, subtract y, store the answer in z. Declare all three as labels (give x the value 50 and y the value 8 in their .byte lines).",
+        text: "Three variables: x, y, and z. Work out x − y and leave the answer in z. Declare all three as labels — give x the value 50 and y the value 8 in their .byte lines (z starts at 0).",
         starter: "; code first, then your labeled boxes\n",
         check: {
           cases: [{ A: 42, expectSymbols: { z: 42 } }],
