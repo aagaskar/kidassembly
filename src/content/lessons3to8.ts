@@ -653,6 +653,12 @@ export const LESSONS_3_TO_8: Lesson[] = [
         text: "Suppose you write a brilliant paint-a-row routine and want to use it from three places. JUMP gets you there… but how does the routine get BACK? It would need to know who called it. CALL (11) solves this: it saves the return address before jumping. RET (12) reads that note and jumps back.",
       },
       {
+        kind: "info",
+        text: "Watch the breadcrumb appear. This program runs LOADC 5, then CALL 10 — and the routine at box 10 is just RET. Step it slowly: when CALL fires, watch register SP march DOWN one and the return address (4 — the box right AFTER the CALL) land on top of the stack. Then RET reads that note and jumps home.",
+        sim: { program: [Op.LOADC, 5, Op.CALL, 10, Op.HALT, 0, 0, 0, 0, 0, Op.RET, 0] },
+        highlight: [255],
+      },
+      {
         kind: "predict",
         text: "Where does the machine keep the note? On the STACK — boxes at the top of memory, tracked by register SP. CALL 10 runs from address 0. The return address (2) gets written at box 255. Predict what's in box 255 after one step.",
         sim: { program: [Op.CALL, 10, Op.HALT, 0, 0, 0, 0, 0, 0, 0, Op.RET, 0] },
@@ -690,6 +696,11 @@ export const LESSONS_3_TO_8: Lesson[] = [
       {
         kind: "info",
         text: "The stack isn't only for return addresses. PUSH (13) puts A on the pile; POP (14) takes the top back into A. Routines use this to avoid trampling the caller's numbers.",
+      },
+      {
+        kind: "info",
+        text: "See the pile work. Step this: LOADC 9 puts 9 in A, PUSH drops a copy of 9 onto the stack (SP dips), LOADC 2 changes A to 2 — but the 9 is safe on the pile — then POP lifts the 9 back into A. Watch the stack region as it happens.",
+        sim: { program: [Op.LOADC, 9, Op.PUSH, 0, Op.LOADC, 2, Op.POP, 0, Op.HALT, 0] },
       },
       {
         kind: "predict",
