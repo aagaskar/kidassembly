@@ -33,6 +33,12 @@ export const LESSONS_3_TO_8: Lesson[] = [
         explain: "ADD 10 means \"add what's IN box 10\" — not the number 10. Address vs. value, always.",
       },
       {
+        kind: "info",
+        text: "SUB works the same way, backwards. Watch: A loads 40, then SUB box 11 (which holds 15) takes 15 away, leaving 25. Step it and see A drop.",
+        sim: { program: [Op.LOADC, 40, Op.SUB, 11, Op.HALT, 0], memory: { 11: 15 } },
+        highlight: [11],
+      },
+      {
         kind: "predict",
         text: "Now SUB. Box 11 holds 5. A becomes 20, then we SUB 11. What is A at the end?",
         sim: { program: [Op.LOADC, 20, Op.SUB, 11, Op.HALT, 0], memory: { 11: 5 } },
@@ -377,6 +383,14 @@ export const LESSONS_3_TO_8: Lesson[] = [
       {
         kind: "info",
         text: "How does the machine TELL negatives apart? The top-left light. Numbers 128–255 (top bit ON) are treated as negative. JNEG (number 8) jumps when A's top bit is 1. So after SUB, JNEG means \"jump if the answer went below zero\".",
+      },
+      {
+        kind: "info",
+        text: "Watch JNEG fire. A loads 5, then SUB box 12 (holds 8): 5 − 8 can't go below 0, so A wraps to 253 and the top-left light snaps ON. JNEG sees that bit and LEAPS to box 8 (a HALT). Step it slowly — watch the top light, then watch PC jump.",
+        sim: {
+          program: [Op.LOADC, 5, Op.SUB, 12, Op.JNEG, 8, Op.HALT, 0, Op.HALT, 0],
+          memory: { 12: 8 },
+        },
       },
       {
         kind: "predict",
