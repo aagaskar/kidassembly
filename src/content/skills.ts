@@ -1,5 +1,5 @@
 import { Skill } from "../engine/skills";
-import { DrillKind, Step } from "../engine/types";
+import { DrillKind, OpcodeDrillOp, Step } from "../engine/types";
 import { makeRng, randInt } from "../engine/rng";
 import { Op } from "../vm/types";
 import { LESSONS } from "./lessons";
@@ -13,11 +13,12 @@ import { LESSONS } from "./lessons";
 
 type Gen = (seed: number) => Step;
 
-const drill = (kind: DrillKind, count = 3): Gen => () => ({
+const drill = (kind: DrillKind, count = 3, ops?: OpcodeDrillOp[]): Gen => () => ({
   kind: "drill",
   text: "Review!",
   drill: kind,
   count,
+  ...(ops ? { ops } : {}),
 });
 
 /** Predict A after a tiny randomized straight-line program. */
@@ -62,6 +63,20 @@ const predictStorep: Gen = (seed) => {
     sim: { program: [Op.LOADC, color, Op.STOREP, ptrBox, Op.HALT, 0], memory: { [ptrBox]: target } },
     stepsToRun: 2,
     ask: { what: "cell", addr: target },
+  };
+};
+
+/** JZ prediction: does the jump fire? Scoped to exactly what u05.jz taught. */
+const predictJz: Gen = (seed) => {
+  const rng = makeRng(seed);
+  const fires = randInt(rng, 0, 1) === 1;
+  const v = fires ? 0 : randInt(rng, 1, 99);
+  return {
+    kind: "predict",
+    text: `Review: A is loaded with ${v}, then JZ 8 runs. Predict PC after both steps. (Box 8 has a HALT. If JZ doesn't jump, the machine just continues to the next instruction.)`,
+    sim: { program: [Op.LOADC, v, Op.JZ, 8, Op.LOADC, 99, Op.HALT, 0, Op.HALT, 0] },
+    stepsToRun: 2,
+    ask: { what: "PC" },
   };
 };
 
@@ -206,10 +221,12 @@ const SPECS: Record<string, SkillSpec> = {
   "u00.three_faces": { review: drill("bin2dec", 2) },
   "u01.boxes": { automaticity: true, review: drill("addrvalue", 3) },
   "u01.treasure": { review: drill("mlevel", 3) },
-  "u02.wakes": { review: drill("opcode", 2) },
-  "u02.load": { automaticity: true, subsumes: ["u01.boxes"], review: drill("opcode", 3) },
+  // Opcode reviews are scoped to instructions taught by that point — a
+  // scheduled review must never quiz an instruction the child hasn't met.
+  "u02.wakes": { review: drill("opcode", 2, ["LOADC"]) },
+  "u02.load": { automaticity: true, subsumes: ["u01.boxes"], review: drill("opcode", 3, ["LOADC", "LOAD"]) },
   "u02.store": { subsumes: ["u02.load"], review: predictStore },
-  "u02.program_in_boxes": { review: drill("opcode", 2) },
+  "u02.program_in_boxes": { review: drill("opcode", 2, ["LOADC", "LOAD", "STORE"]) },
   "u03.add": { subsumes: ["u02.store"], review: predictArith },
   "u03.machine_code": { review: predictArith },
   "u03.first_pixel": { subsumes: ["u02.store"], review: predictStore },
@@ -218,7 +235,9 @@ const SPECS: Record<string, SkillSpec> = {
   "u04.labels": { review: targetPixel },
   "u04.variables": { subsumes: ["u04.labels"], review: drill("addrvalue", 2) },
   "u05.jump": { review: drill("opcode", 2) },
-  "u05.jz": { review: predictLoop },
+  // predictJz, not predictLoop: the countdown idiom (MINUSONE/PLUSONE) isn't
+  // taught until u05.countdown, two lessons later.
+  "u05.jz": { review: predictJz },
   "u05.twos": { automaticity: true, review: drill("twos", 3) },
   "u05.countdown": { subsumes: ["u05.jump", "u05.jz"], review: predictLoop },
   "u05.loop_bugs": { subsumes: ["u05.countdown"], review: parsonsLoop },

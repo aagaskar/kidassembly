@@ -58,7 +58,7 @@ export const LESSONS_9_TO_15: Lesson[] = [
       },
       {
         kind: "minic",
-        text: "Your turn to WRITE C. Make the variable \"answer\" end up holding 42 — but compute it as 6 times 7, don't just type 42. (Statements end with ; — the error messages will help you.)",
+        text: "Your turn to WRITE C. Make the variable \"answer\" end up holding 42 — but compute it as 6 times 7, don't just type 42. In C, \"times\" is written with a star: 6 * 7. (Statements end with ; — the error messages will help you.)",
         source: "int answer;\n\nint main() {\n  // your code here\n  return 0;\n}",
         mode: "edit",
         check: { cases: [{ A: 42 }] },
@@ -216,7 +216,7 @@ export const LESSONS_9_TO_15: Lesson[] = [
       },
       {
         kind: "minic",
-        text: "Use a for loop to count how many multiples of 3 there are from 1 to 20 (hint: i % 3 == 0).",
+        text: "Use a for loop to count how many multiples of 3 there are from 1 to 20. New tool: i % 3 gives the REMAINDER of i divided by 3 — so i % 3 == 0 exactly when i is a multiple of 3.",
         source: "int main() {\n  int hits = 0;\n  // for loop here\n  return hits;\n}",
         mode: "edit",
         check: { cases: [{ A: 6 }] },

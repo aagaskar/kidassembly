@@ -226,7 +226,8 @@ function DrillStep({
         step.drill,
         baseSeed.current + solved * 131 + attempt * 7919,
         step.maxValue ?? 15,
-        lastPrompt.current
+        lastPrompt.current,
+        step.ops
       ),
     [step, solved, attempt]
   );

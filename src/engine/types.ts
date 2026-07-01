@@ -22,6 +22,9 @@ export type DrillKind =
   | "addrvalue" // address vs value discrimination
   | "twos"; // two's complement: what do you add to get zero?
 
+/** Instructions the opcode drill may ask about (scoped to what's been taught). */
+export type OpcodeDrillOp = "LOADC" | "LOAD" | "STORE" | "ADD" | "SUB";
+
 /** What a predict-state item asks about. */
 export type PredictAsk =
   | { what: "A" }
@@ -90,6 +93,12 @@ export type Step =
       drill: DrillKind;
       count: number;
       maxValue?: number;
+      /**
+       * Opcode drill only: which instructions the questions may cover.
+       * Scope this to what the student has been taught so a review can't
+       * quiz an instruction that hasn't appeared yet. Default: all.
+       */
+      ops?: OpcodeDrillOp[];
       /** Latency gate (automaticity skills only, §5.4): ms per question. */
       maxLatencyMs?: number;
     }

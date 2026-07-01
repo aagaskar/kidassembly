@@ -210,7 +210,8 @@ export interface DrillQuestion {
 export function makeDrillQuestion(
   drill: import("./types").DrillKind,
   seed: number,
-  maxValue = 15
+  maxValue = 15,
+  ops?: import("./types").OpcodeDrillOp[]
 ): DrillQuestion {
   const rng = makeRng(seed);
   switch (drill) {
@@ -219,26 +220,34 @@ export function makeDrillQuestion(
       const a = randInt(rng, 1, 9);
       const boxAddr = randInt(rng, 20, 30);
       const boxVal = randInt(rng, 1, 9);
-      const kind = randInt(rng, 0, 3);
-      const prompts = [
-        {
+      const prompts: Record<import("./types").OpcodeDrillOp, { q: string; ans: number }> = {
+        LOADC: {
           q: `A holds ${a}. Box ${boxAddr} holds ${boxVal}. The machine runs LOADC ${boxAddr}. What is in A now?`,
           ans: boxAddr,
         },
-        {
+        LOAD: {
           q: `A holds ${a}. Box ${boxAddr} holds ${boxVal}. The machine runs LOAD ${boxAddr}. What is in A now?`,
           ans: boxVal,
         },
-        {
+        ADD: {
           q: `A holds ${a}. Box ${boxAddr} holds ${boxVal}. The machine runs ADD ${boxAddr}. What is in A now?`,
           ans: a + boxVal,
         },
-        {
+        // A starts above the box value so the answer never dips below zero —
+        // this drill can run before wraparound is taught.
+        SUB: {
+          q: `A holds ${a + boxVal}. Box ${boxAddr} holds ${boxVal}. The machine runs SUB ${boxAddr}. What is in A now?`,
+          ans: a,
+        },
+        STORE: {
           q: `A holds ${a}. Box ${boxAddr} holds ${boxVal}. The machine runs STORE ${boxAddr}. What is in box ${boxAddr} now?`,
           ans: a,
         },
-      ];
-      return { prompt: prompts[kind].q, mode: "type", bitCount: 0, answer: prompts[kind].ans };
+      };
+      const allowed: import("./types").OpcodeDrillOp[] =
+        ops && ops.length ? ops : ["LOADC", "LOAD", "STORE", "ADD", "SUB"];
+      const pick = prompts[allowed[randInt(rng, 0, allowed.length - 1)]];
+      return { prompt: pick.q, mode: "type", bitCount: 0, answer: pick.ans };
     }
     case "mlevel": {
       // M[a] vs M[M[a]]: the dereference discrimination drill (§10).
@@ -334,12 +343,13 @@ export function makeDistinctDrillQuestion(
   drill: import("./types").DrillKind,
   seed: number,
   maxValue = 15,
-  avoidPrompt?: string
+  avoidPrompt?: string,
+  ops?: import("./types").OpcodeDrillOp[]
 ): DrillQuestion {
-  let q = makeDrillQuestion(drill, seed, maxValue);
+  let q = makeDrillQuestion(drill, seed, maxValue, ops);
   for (let i = 0; i < 20 && q.prompt === avoidPrompt; i++) {
     seed += 104729; // a prime, to jump to an unrelated part of the sequence
-    q = makeDrillQuestion(drill, seed, maxValue);
+    q = makeDrillQuestion(drill, seed, maxValue, ops);
   }
   return q;
 }

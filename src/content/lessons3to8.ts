@@ -668,13 +668,13 @@ export const LESSONS_3_TO_8: Lesson[] = [
       },
       {
         kind: "info",
-        text: "Watch the breadcrumb appear. This program runs LOADC 5, then CALL 10 — and the routine at box 10 is just RET. Step it slowly: when CALL fires, watch register SP march DOWN one and the return address (4 — the box right AFTER the CALL) land on top of the stack. Then RET reads that note and jumps home.",
+        text: "Where does the machine keep the note? On the STACK — boxes at the TOP of memory (box 255 first), tracked by a register called SP. Watch it happen: this program runs LOADC 5, then CALL 10 — and the routine at box 10 is just RET. Step it slowly: when CALL fires, SP marches DOWN one and the return address (4 — the box right AFTER the CALL) lands in box 255. Then RET reads that note and jumps home.",
         sim: { program: [Op.LOADC, 5, Op.CALL, 10, Op.HALT, 0, 0, 0, 0, 0, Op.RET, 0] },
         highlight: [255],
       },
       {
         kind: "predict",
-        text: "Where does the machine keep the note? On the STACK — boxes at the top of memory, tracked by register SP. CALL 10 runs from address 0. The return address (2) gets written at box 255. Predict what's in box 255 after one step.",
+        text: "Your turn. This time CALL 10 sits at address 0 — the very first instruction. One step runs. Predict what's in box 255 after it. (Which box comes right AFTER this CALL?)",
         sim: { program: [Op.CALL, 10, Op.HALT, 0, 0, 0, 0, 0, 0, 0, Op.RET, 0] },
         stepsToRun: 1,
         ask: { what: "cell", addr: 255 },

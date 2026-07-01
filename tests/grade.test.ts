@@ -137,6 +137,23 @@ describe("drill generation (parameterized items, §5.3)", () => {
       expect(maxn.answer).toBe(2 ** maxn.bitCount - 1);
     }
   });
+
+  it("scoped opcode drills never quiz an out-of-scope instruction", () => {
+    // Unit-2 reviews scope the drill to what's been taught; an early review
+    // must never surface ADD/SUB (Unit 3) or other untaught instructions.
+    for (let seed = 1; seed <= 200; seed++) {
+      const q = makeDrillQuestion("opcode", seed, 15, ["LOADC", "LOAD"]);
+      expect(q.prompt).toMatch(/\b(LOADC|LOAD)\b/);
+      expect(q.prompt).not.toMatch(/\b(STORE|ADD|SUB)\b/);
+    }
+  });
+
+  it("opcode SUB questions never dip below zero (pre-wraparound safe)", () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const q = makeDrillQuestion("opcode", seed, 15, ["SUB"]);
+      expect(q.answer).toBeGreaterThanOrEqual(0);
+    }
+  });
 });
 
 describe("program text format", () => {
