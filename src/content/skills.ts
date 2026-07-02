@@ -177,6 +177,64 @@ const minicAssign = (template: (n: number) => { text: string; source: string; an
     };
   };
 
+/** Scoped to u09.variables: assignment + arithmetic only — loops are Unit 10. */
+const minicVarReview: Gen = (seed) => {
+  const rng = makeRng(seed);
+  const n = randInt(rng, 3, 12);
+  return {
+    kind: "minic",
+    text: `Review: make the variable x hold ${n} times 7 (in C, times is written *), then return x.`,
+    source: `int x;\n\nint main() {\n  // set x, then return it\n  return 0;\n}`,
+    mode: "edit",
+    check: { cases: [{ A: n * 7, expectSymbols: { x: n * 7 } }] },
+    solution: `int x;\n\nint main() {\n  x = ${n} * 7;\n  return x;\n}`,
+  };
+};
+
+/** Scoped to u09.assignment: = copies right into left — no pointers (Unit 12). */
+const minicCopyReview: Gen = (seed) => {
+  const rng = makeRng(seed);
+  const v1 = randInt(rng, 10, 40);
+  const v2 = randInt(rng, 41, 90);
+  return {
+    kind: "minic",
+    text: "Review: copy y into x with =, then return x. (It must work whatever y holds — the tests change it!)",
+    source: `int x;\nint y;\n\nint main() {\n  // copy, then return x\n  return 0;\n}`,
+    mode: "edit",
+    check: {
+      cases: [
+        { symbols: { y: v1 }, A: v1, expectSymbols: { x: v1 } },
+        { symbols: { y: v2 }, A: v2, expectSymbols: { x: v2 } },
+      ],
+    },
+    solution: `int x;\nint y;\n\nint main() {\n  x = y;\n  return x;\n}`,
+  };
+};
+
+/** Scoped to u10.if: an if and a comparison — while/for come in later lessons. */
+const minicMaxReview: Gen = (seed) => {
+  const rng = makeRng(seed);
+  // Two cases with DIFFERENT winners on different sides, so neither a
+  // hardcoded constant nor "always return a" can pass.
+  const lo1 = randInt(rng, 1, 40);
+  const hi1 = randInt(rng, 41, 65);
+  const lo2 = randInt(rng, 1, 40);
+  const hi2 = randInt(rng, 66, 90);
+  return {
+    kind: "minic",
+    text: "Review: return the LARGER of a and b. (The tests try several pairs — no hardcoding!)",
+    source: `int a;\nint b;\n\nint main() {\n  // return the larger one\n  return 0;\n}`,
+    mode: "edit",
+    check: {
+      cases: [
+        { symbols: { a: hi1, b: lo1 }, A: hi1 },
+        { symbols: { a: lo2, b: hi2 }, A: hi2 },
+      ],
+    },
+    solution: `int a;\nint b;\n\nint main() {\n  if (a > b) {\n    return a;\n  }\n  return b;\n}`,
+  };
+};
+
 const minicLoopReview = minicAssign((n) => ({
   text: `Review: make main return the sum 1 + 2 + … + ${n} using a loop.`,
   source: `int main() {\n  // loop here\n  return 0;\n}`,
@@ -205,6 +263,14 @@ const minicArrReview = minicAssign((n) => ({
   solution: `int a[5];\n\nint main() {\n  for (int i = 0; i < 5; i = i + 1) { a[i] = i * ${n}; }\n  return a[4];\n}`,
 }));
 
+// Same task in star form for Unit 12 — a[i] bracket indexing arrives in Unit 13.
+const minicPtrArrReview = minicAssign((n) => ({
+  text: `Review: fill 5 slots with a loop — make *(a + i) hold i * ${n} for i in 0..4; return *(a + 4).`,
+  source: `int a[5];\n\nint main() {\n  // loop\n  return *(a + 4);\n}`,
+  answer: 4 * n,
+  solution: `int a[5];\n\nint main() {\n  for (int i = 0; i < 5; i = i + 1) { *(a + i) = i * ${n}; }\n  return *(a + 4);\n}`,
+}));
+
 // ---------------------------------------------------------------- graph
 
 interface SkillSpec {
@@ -220,7 +286,9 @@ const SPECS: Record<string, SkillSpec> = {
   "u00.bytes": { automaticity: true, review: drill("maxn", 2) },
   "u00.three_faces": { review: drill("bin2dec", 2) },
   "u01.boxes": { automaticity: true, review: drill("addrvalue", 3) },
-  "u01.treasure": { review: drill("mlevel", 3) },
+  // trail, not mlevel: mlevel prompts say LOAD/LOADP, and no instruction
+  // exists until Unit 2 (LOADP not until Unit 6).
+  "u01.treasure": { review: drill("trail", 3) },
   // Opcode reviews are scoped to instructions taught by that point — a
   // scheduled review must never quiz an instruction the child hasn't met.
   "u02.wakes": { review: drill("opcode", 2, ["LOADC"]) },
@@ -254,10 +322,12 @@ const SPECS: Record<string, SkillSpec> = {
   "u08.cview": { subsumes: ["u08.shorthand"], review: matchBridge },
   "u08.cview_loop": { subsumes: ["u08.cview", "u05.countdown"], review: matchBridge },
   "u09.bitbot16": {},
-  "u09.variables": { review: minicLoopReview },
+  // Unit 9/10 reviews stay within their unit's constructs: loops arrive in
+  // Unit 10 (after u10.if) and C pointer syntax in Unit 12.
+  "u09.variables": { review: minicVarReview },
   "u09.types": { review: drill("maxn", 2) },
-  "u09.assignment": { subsumes: ["u02.store"], review: minicPtrReview },
-  "u10.if": { review: minicLoopReview },
+  "u09.assignment": { subsumes: ["u02.store"], review: minicCopyReview },
+  "u10.if": { review: minicMaxReview },
   "u10.while": { subsumes: ["u05.countdown", "u08.cview_loop"], review: minicLoopReview },
   "u10.for": { subsumes: ["u10.while"], review: minicLoopReview },
   "u11.functions": { subsumes: ["u07.routine"], review: minicFnReview },
@@ -265,8 +335,9 @@ const SPECS: Record<string, SkillSpec> = {
   "u11.recursion": { subsumes: ["u11.functions", "u07.call"], review: minicFnReview },
   "u12.address_of": { subsumes: ["u06.pointer_word"], review: minicPtrReview },
   "u12.swap": { subsumes: ["u12.address_of", "u11.functions"], review: minicPtrReview },
-  "u12.pointer_math": { subsumes: ["u12.address_of"], review: minicArrReview },
-  "u12.screen": { subsumes: ["u12.pointer_math", "u06.walk"], review: minicArrReview },
+  // Star form (*(a + i)) here: bracket indexing is taught in u13.arrays.
+  "u12.pointer_math": { subsumes: ["u12.address_of"], review: minicPtrArrReview },
+  "u12.screen": { subsumes: ["u12.pointer_math", "u06.walk"], review: minicPtrArrReview },
   "u13.arrays": { subsumes: ["u12.pointer_math"], review: minicArrReview },
   "u13.strings": { subsumes: ["u13.arrays", "u10.while"], review: minicArrReview },
   "u13.overrun": {},

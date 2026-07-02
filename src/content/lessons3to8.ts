@@ -394,7 +394,7 @@ export const LESSONS_3_TO_8: Lesson[] = [
       },
       {
         kind: "predict",
-        text: "A = 3, SUB box 12 (which holds 10) → A wraps to 249, top bit ON. JNEG 10 is next. Predict PC after the JNEG runs. (Box 10 has a HALT.)",
+        text: "Your turn: A = 3, then SUB box 12 (which holds 10). Does 3 − 10 go below zero? So is A's top-left light ON? JNEG 10 runs next — predict PC after the JNEG. (Box 10 has a HALT.)",
         sim: {
           program: [Op.LOADC, 3, Op.SUB, 12, Op.JNEG, 10, Op.HALT, 0, Op.HALT, 0, Op.HALT, 0],
           memory: { 12: 10 },

@@ -20,7 +20,8 @@ export type DrillKind =
   | "opcode" // what does this instruction do?
   | "mlevel" // M[a] vs M[M[a]] discrimination
   | "addrvalue" // address vs value discrimination
-  | "twos"; // two's complement: what do you add to get zero?
+  | "twos" // two's complement: what do you add to get zero?
+  | "trail"; // Unit-1 treasure hunt: follow addresses, no instructions yet
 
 /** Instructions the opcode drill may ask about (scoped to what's been taught). */
 export type OpcodeDrillOp = "LOADC" | "LOAD" | "STORE" | "ADD" | "SUB";

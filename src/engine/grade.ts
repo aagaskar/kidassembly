@@ -297,6 +297,28 @@ export function makeDrillQuestion(
         answer: 256 - v,
       };
     }
+    case "trail": {
+      // Unit-1 arrow-following in the treasure-hunt's own words — no
+      // instruction exists yet, so no mnemonics may appear in the prompt.
+      const a = randInt(rng, 5, 15);
+      const m = randInt(rng, 20, 30);
+      const d = randInt(rng, 35, 45);
+      const e = randInt(rng, 1, 9);
+      const twice = randInt(rng, 0, 1) === 1;
+      return twice
+        ? {
+            prompt: `Treasure hunt! Box ${a} holds ${m}, box ${m} holds ${d}, and box ${d} holds ${e}. Start at box ${a} and follow the trail TWICE. What number is in the box you land on?`,
+            mode: "type",
+            bitCount: 0,
+            answer: e,
+          }
+        : {
+            prompt: `Treasure hunt! Box ${a} holds ${m}, and box ${m} holds ${d}. Box ${a} points you somewhere — go there. What number do you find?`,
+            mode: "type",
+            bitCount: 0,
+            answer: d,
+          };
+    }
     case "bin2dec": {
       const v = randInt(rng, 1, maxValue);
       const bits = maxValue < 16 ? 4 : 8;

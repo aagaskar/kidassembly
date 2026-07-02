@@ -145,6 +145,10 @@ export const LESSONS_9_TO_15: Lesson[] = [
         mode: "view",
       },
       {
+        kind: "info",
+        text: "That > was one of a whole family. C's comparisons: > (bigger), < (smaller), >= (bigger-or-equal), <= (smaller-or-equal), == (equal — TWO equals signs!), != (not equal). Each one computes a number: 1 for true, 0 for false. And you know exactly what the machine does with a 0 next… JZ.",
+      },
+      {
         kind: "minic",
         text: "Write max: return the LARGER of the two globals a and b. The tests try several pairs — no hardcoding!",
         source: "int a;\nint b;\n\nint main() {\n  // return the larger one\n  return 0;\n}",
@@ -186,7 +190,7 @@ export const LESSONS_9_TO_15: Lesson[] = [
       },
       {
         kind: "minic",
-        text: "Write the classic: sum the numbers 1 through n (n is a global the tests will set). while-loop it.",
+        text: "Write the classic: sum the numbers 1 through n (n is a global the tests will set). while-loop it. You'll need a variable for the running total — declare your own: a line like int sum = 0; works inside main, or int sum; above it.",
         source: "int n;\n\nint main() {\n  // sum 1..n and return it\n  return 0;\n}",
         mode: "edit",
         check: {
