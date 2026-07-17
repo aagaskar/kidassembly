@@ -33,6 +33,12 @@ export const LESSONS_3_TO_8: Lesson[] = [
         explain: "ADD 10 means \"add what's IN box 10\" — not the number 10. Address vs. value, always.",
       },
       {
+        kind: "info",
+        text: "SUB works the same way, backwards. Watch: A loads 40, then SUB box 11 (which holds 15) takes 15 away, leaving 25. Step it and see A drop.",
+        sim: { program: [Op.LOADC, 40, Op.SUB, 11, Op.HALT, 0], memory: { 11: 15 } },
+        highlight: [11],
+      },
+      {
         kind: "predict",
         text: "Now SUB. Box 11 holds 5. A becomes 20, then we SUB 11. What is A at the end?",
         sim: { program: [Op.LOADC, 20, Op.SUB, 11, Op.HALT, 0], memory: { 11: 5 } },
@@ -146,6 +152,20 @@ export const LESSONS_3_TO_8: Lesson[] = [
       {
         kind: "info",
         text: "A box holds 0 to 255 and NOTHING else. So what happens at 255 + 1? The real answer, 256, needs a 9th digit — but the box only has 8 switches. That extra digit doesn't fit, so it falls off and we're left with 0. Losing the digit that won't fit is called overflow. It isn't a bug — it's what 8 switches must do.",
+      },
+      {
+        kind: "info",
+        text: "Let's WATCH it. A is loaded with 255 — every light ON. Step once more to ADD box 12, which holds 1. The honest answer is 256… but there's no 9th light to turn on, so all 8 flip OFF together and leave 0 behind. Step through it and see.",
+        sim: { program: [Op.LOADC, 255, Op.ADD, 12, Op.HALT, 0], memory: { 12: 1 } },
+      },
+      {
+        kind: "info",
+        text: "Now the other direction. A holds 5; step once more to SUB box 12, which holds 6. You can't drop below 0, so the count falls off the BOTTOM and reappears at the TOP: 255. Step it and watch A wrap around.",
+        sim: { program: [Op.LOADC, 5, Op.SUB, 12, Op.HALT, 0], memory: { 12: 6 } },
+      },
+      {
+        kind: "info",
+        text: "Those were the worked examples — now your turn to predict before you step. Same rule both times: when the count runs off either end, it wraps around.",
       },
       {
         kind: "predict",
@@ -365,8 +385,16 @@ export const LESSONS_3_TO_8: Lesson[] = [
         text: "How does the machine TELL negatives apart? The top-left light. Numbers 128–255 (top bit ON) are treated as negative. JNEG (number 8) jumps when A's top bit is 1. So after SUB, JNEG means \"jump if the answer went below zero\".",
       },
       {
+        kind: "info",
+        text: "Watch JNEG fire. A loads 5, then SUB box 12 (holds 8): 5 − 8 can't go below 0, so A wraps to 253 and the top-left light snaps ON. JNEG sees that bit and LEAPS to box 8 (a HALT). Step it slowly — watch the top light, then watch PC jump.",
+        sim: {
+          program: [Op.LOADC, 5, Op.SUB, 12, Op.JNEG, 8, Op.HALT, 0, Op.HALT, 0],
+          memory: { 12: 8 },
+        },
+      },
+      {
         kind: "predict",
-        text: "A = 3, SUB box 12 (which holds 10) → A wraps to 249, top bit ON. JNEG 10 is next. Predict PC after the JNEG runs. (Box 10 has a HALT.)",
+        text: "Your turn: A = 3, then SUB box 12 (which holds 10). Does 3 − 10 go below zero? So is A's top-left light ON? JNEG 10 runs next — predict PC after the JNEG. (Box 10 has a HALT.)",
         sim: {
           program: [Op.LOADC, 3, Op.SUB, 12, Op.JNEG, 10, Op.HALT, 0, Op.HALT, 0, Op.HALT, 0],
           memory: { 12: 10 },
@@ -639,8 +667,14 @@ export const LESSONS_3_TO_8: Lesson[] = [
         text: "Suppose you write a brilliant paint-a-row routine and want to use it from three places. JUMP gets you there… but how does the routine get BACK? It would need to know who called it. CALL (11) solves this: it saves the return address before jumping. RET (12) reads that note and jumps back.",
       },
       {
+        kind: "info",
+        text: "Where does the machine keep the note? On the STACK — boxes at the TOP of memory (box 255 first), tracked by a register called SP. Watch it happen: this program runs LOADC 5, then CALL 10 — and the routine at box 10 is just RET. Step it slowly: when CALL fires, SP marches DOWN one and the return address (4 — the box right AFTER the CALL) lands in box 255. Then RET reads that note and jumps home.",
+        sim: { program: [Op.LOADC, 5, Op.CALL, 10, Op.HALT, 0, 0, 0, 0, 0, Op.RET, 0] },
+        highlight: [255],
+      },
+      {
         kind: "predict",
-        text: "Where does the machine keep the note? On the STACK — boxes at the top of memory, tracked by register SP. CALL 10 runs from address 0. The return address (2) gets written at box 255. Predict what's in box 255 after one step.",
+        text: "Your turn. This time CALL 10 sits at address 0 — the very first instruction. One step runs. Predict what's in box 255 after it. (Which box comes right AFTER this CALL?)",
         sim: { program: [Op.CALL, 10, Op.HALT, 0, 0, 0, 0, 0, 0, 0, Op.RET, 0] },
         stepsToRun: 1,
         ask: { what: "cell", addr: 255 },
@@ -676,6 +710,11 @@ export const LESSONS_3_TO_8: Lesson[] = [
       {
         kind: "info",
         text: "The stack isn't only for return addresses. PUSH (13) puts A on the pile; POP (14) takes the top back into A. Routines use this to avoid trampling the caller's numbers.",
+      },
+      {
+        kind: "info",
+        text: "See the pile work. Step this: LOADC 9 puts 9 in A, PUSH drops a copy of 9 onto the stack (SP dips), LOADC 2 changes A to 2 — but the 9 is safe on the pile — then POP lifts the 9 back into A. Watch the stack region as it happens.",
+        sim: { program: [Op.LOADC, 9, Op.PUSH, 0, Op.LOADC, 2, Op.POP, 0, Op.HALT, 0] },
       },
       {
         kind: "predict",

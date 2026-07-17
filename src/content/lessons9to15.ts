@@ -58,7 +58,7 @@ export const LESSONS_9_TO_15: Lesson[] = [
       },
       {
         kind: "minic",
-        text: "Your turn to WRITE C. Make the variable \"answer\" end up holding 42 — but compute it as 6 times 7, don't just type 42. (Statements end with ; — the error messages will help you.)",
+        text: "Your turn to WRITE C. Make the variable \"answer\" end up holding 42 — but compute it as 6 times 7, don't just type 42. In C, \"times\" is written with a star: 6 * 7. (Statements end with ; — the error messages will help you.)",
         source: "int answer;\n\nint main() {\n  // your code here\n  return 0;\n}",
         mode: "edit",
         check: { cases: [{ A: 42 }] },
@@ -145,6 +145,10 @@ export const LESSONS_9_TO_15: Lesson[] = [
         mode: "view",
       },
       {
+        kind: "info",
+        text: "That > was one of a whole family. C's comparisons: > (bigger), < (smaller), >= (bigger-or-equal), <= (smaller-or-equal), == (equal — TWO equals signs!), != (not equal). Each one computes a number: 1 for true, 0 for false. And you know exactly what the machine does with a 0 next… JZ.",
+      },
+      {
         kind: "minic",
         text: "Write max: return the LARGER of the two globals a and b. The tests try several pairs — no hardcoding!",
         source: "int a;\nint b;\n\nint main() {\n  // return the larger one\n  return 0;\n}",
@@ -186,7 +190,7 @@ export const LESSONS_9_TO_15: Lesson[] = [
       },
       {
         kind: "minic",
-        text: "Write the classic: sum the numbers 1 through n (n is a global the tests will set). while-loop it.",
+        text: "Write the classic: sum the numbers 1 through n (n is a global the tests will set). while-loop it. You'll need a variable for the running total — declare your own: a line like int sum = 0; works inside main, or int sum; above it.",
         source: "int n;\n\nint main() {\n  // sum 1..n and return it\n  return 0;\n}",
         mode: "edit",
         check: {
@@ -216,7 +220,7 @@ export const LESSONS_9_TO_15: Lesson[] = [
       },
       {
         kind: "minic",
-        text: "Use a for loop to count how many multiples of 3 there are from 1 to 20 (hint: i % 3 == 0).",
+        text: "Use a for loop to count how many multiples of 3 there are from 1 to 20. New tool: i % 3 gives the REMAINDER of i divided by 3 — so i % 3 == 0 exactly when i is a multiple of 3.",
         source: "int main() {\n  int hits = 0;\n  // for loop here\n  return hits;\n}",
         mode: "edit",
         check: { cases: [{ A: 6 }] },
